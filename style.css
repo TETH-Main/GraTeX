@@ -1,0 +1,222 @@
+    body {
+      margin: 0;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #212529;
+      text-align: left;
+      background-color: #fff;
+    }
+    .h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
+      margin-bottom: .5rem;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+    h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+    margin-bottom: .5rem;
+    }
+    div {
+    display: block;
+    margin-top: 0em;
+    }
+    .h3, h3 {
+      font-size: 1.75rem;
+    }
+    p {
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: inline-block;
+      margin-bottom: .5rem;
+    }
+    *, ::after, ::before {
+    box-sizing: border-box;
+    }
+    a {
+      display: inline-block;
+      text-decoration: none;
+      border-bottom: 1px dashed transparent;
+      margin-bottom: -1px;
+      transition: .1s;
+    }
+    a:hover, a:focus {
+      border-bottom-color: #333;
+      margin-bottom: -1px;
+    }
+    .navbar {
+      margin-bottom: 24px;
+      position: relative;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+      -ms-flex-align: center;
+      align-items: center;
+      -ms-flex-pack: justify;
+      justify-content: space-between;
+      padding: .5rem 1rem;
+    }
+    .navbar-light .navbar-brand {
+      color: rgba(0,0,0,.9);
+    }
+    .navbar-brand {
+      display: inline-block;
+      padding-top: .3125rem;
+      padding-bottom: .3125rem;
+      margin-right: 1rem;
+      font-size: 1.25rem;
+      line-height: inherit;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .bg-light {
+      background-color: #f8f9fa!important;
+    }
+    .card {
+      position: relative;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      min-width: 0;
+      word-wrap: break-word;
+      background-color: #fff;
+      background-clip: border-box;
+      border: 1px solid rgba(0,0,0,.125);
+      border-radius: .25rem;
+    }
+    .card-body {
+      -ms-flex: 1 1 auto;
+      flex: 1 1 auto;
+      min-height: 1px;
+      padding: 1.25rem;
+    }
+    .col {
+      position: relative;
+      padding-right: 15px;
+      padding-left: 15px;
+    }
+    .stretch {
+      -ms-flex: 1;
+      flex: 1;
+    }
+    .container{
+      padding:0 15px;
+      margin:0 auto 1em auto;
+      display:block;
+    }
+    @media screen and (min-width: 992px){
+      .container{
+        max-width: 960px;
+      }
+    }
+    @media screen and (min-width: 768px) and (max-width: 992px) {
+      .container{
+        max-width: 720px;
+      }
+    }
+    @media screen and (min-width: 576px) and (max-width: 768px) {
+      .container{
+        max-width: 540px;
+      }
+    }
+    #calculator {
+      width: 100%;
+      height: 500px;
+    }
+    .card {
+      position: relative;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      min-width: 0;
+      word-wrap: break-word;
+      background-color: #fff;
+      background-clip: border-box;
+      border: 1px solid rgba(0,0,0,.125);
+      border-radius: .25rem;
+    }
+    .card-body {
+      flex: 1 1 auto;
+      min-height: 1px;
+      padding: 1rem;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-control {
+      display: block;
+      width: 100%;
+      height: calc(1.5em + .75rem + 2px);
+      padding: .375rem .75rem;
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #495057;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid #ced4da;
+      border-radius: .25rem;
+      transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    .form-row {
+      display: -ms-flexbox;
+      display: flex;
+      align-content: center;
+      align-items: flex-end;
+    }
+    .preview {
+      border: 1px solid #000;
+    }
+    #preview {
+      border:  1px solid rgba(0,0,0,.125);
+      width: 100%;
+      height: auto;
+    }
+    #screenshot-button {
+      margin: 10px 0;
+      display: block;
+      cursor: pointer;
+    }
+    #screenshot-container {
+      margin-top: 10px;
+    }
+    #generate-container {
+      display: none;
+      text-align: right;
+    }
+    .btn {
+      display: inline-block;
+      font-weight: 400;
+      color: #212529;
+      text-align: center;
+      vertical-align: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      background-color: transparent;
+      border: 1px solid transparent;
+      padding: .375rem .75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: .25rem;
+      transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+    .btn-primary {
+      color: #fff;
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+    .btn-download {
+      color: #fff;
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+    .footer {
+      margin-bottom: 0;
+    }
