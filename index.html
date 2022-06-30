@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Generate a graph and a LaTeX image using the Desmos Graphing Caluculator">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://teth-main.github.io/GraTeX/img/apple-touch-icon.png">
+  <link rel="icon" sizes="32x32" href="https://teth-main.github.io/GraTeX/img/icon-32x32.png">
+  <link rel="icon" sizes="16x16" href="https://teth-main.github.io/GraTeX/img/icon-16x16.png">
+  <meta property="og:url" content="https://teth-main.github.io/GraTeX/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Graph + LaTeX Generator" />
+  <meta property="og:description" content="GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents." />
+  <meta property="og:site_name" content="GraTeX" />
+  <meta property="og:image" content="https://teth-main.github.io/GraTeX/img/card.png" />
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" type="text/css" href="https://teth-main.github.io/GraTeX/style.css">
+  <link rel="stylesheet" href="http://mathquill.com/lib/mathquill.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="/path/to/mathquill.js"></script>
+  <script src="http://mathquill.com/lib/mathquill.js"></script>
+  <script>
+    var MQ = MathQuill.getInterface(2);
+  </script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-1JR9SZ33HJ');
+  </script>
+  <script src="https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <title>Graph + LaTeX Generator</title>
+</head>
+<body>
+  <nav class="navbar navbar-light bg-light">
+    <header>
+      <h3><a class="navbar-brand" href="https://teth-main.github.io/GraTeX/">Graph + LaTeX = GraTeX</a></h3>
+    </header>
+  </nav>
+  <div class="container">
+    <h3>GraTeX</h3>
+    <p>
+      GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents.
+      <br>
+      Type the formula into the Desmos Graphing Caluculator and click “Generate”.
+      <br>
+      <a href="https://github.com/TETH-Main/GraTeX-web" target="_blank">The source code is available on GitHub.</a>
+      <br>
+      Thanks to <a href="https://twitter.com/graphemecluster" target="_blank">graphemecluster</a>, I was able to create this site. Thank you very much.
+    </p>
+  </div>
+  <div class="container">
+    <div id="calculator"></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="form-row">
+          <div class="col stretch">
+            <div class="form-group">
+              <label>Label Size</label>
+              <form name="labelSize">
+                <select name="labelSize" class="form-control">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4" selected>4</option>
+                  <option value="6">6</option>
+                  <option value="8">8</option>
+                </select>
+              </form>
+            </div>
+          </div>
+          <div class="col stretch">
+            <div class="form-group">
+              <label>Image Dimension</label>
+              <form name="imageDimension">
+                <select name="imageDimension" class="form-control">
+                  <option value="1920,1080,640,96,720" selected>1920 × 1080 (16:9)</option>
+                  <option value="1080,1080,640,96,720">1080 × 1080 (1:1)</option>
+                  <option value="1280,720,432,64,480">1280 × 720 (16:9)</option>
+                  <option value="1024,768,512,48,540">1024 × 768 (4:3)</option>
+                  <option value="512,512,320,32,360">512 × 512 (1:1)</option>
+                </select>
+              </form>
+            </div>
+          </div>
+          <div class="col">
+            <button class="btn btn-primary" id="screenshot-button" type="button">
+              <span>Generate</span>
+            </button>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="col">
+            <label><input type="checkbox" id="credit">Add credit</label>
+          </div>
+          <div class="col">
+            <label><input type="checkbox" id="hideLaTeX">Hide latex</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="generate-container">
+    <div class="card">
+      <div class="card-body">
+        <img id="preview" alt="Preview">
+        <a class="btn btn-download" id="downloadButton" role="button" download="GraTeX.png">
+          <span>Save Image</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar navbar-light bg-light footer">
+    <footer>
+      <h3 class="navbar-brand">By <a href="https://twitter.com/TETH_Main">TETH_Main</a> | <a href="https://github.com/TETH-Main/GraTeX/">Source Code</a></h3>
+    </footer>
+  </nav>
+
+  <script>
+    var calcElt = document.getElementById('calculator');
+    var calculator = Desmos.GraphingCalculator(calcElt, {
+      pasteGraphLink: true
+    });
+    calculator.setExpression({latex: 'x^2+y^2=10'});
+
+    var btnElt = document.getElementById('screenshot-button');
+    btnElt.addEventListener('click', generate);
+    var containerElt = document.getElementById('generate-container');
+
+    var credit = document.getElementById("credit");
+
+    var preview = document.getElementById('preview');
+    var download = document.getElementById('downloadButton');
+    var labelSize = document.forms.labelSize.elements[0];
+    var imageDimension = document.forms.imageDimension.elements[0];
+
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    preview.onload = function() {
+      containerElt.style.display = 'block';
+      preview.onload = null;
+    };
+
+    function generate() {
+      var pageY = pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+      var pageX = pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+      scrollTo(0, 0);
+
+      var graphImg = new Image();
+      var mergeImg = new Image();
+      var [width, height, graphSize, graphMargin, labelPos] = imageDimension.value.split(",").map(num => +num);
+      canvas.width = width;
+      canvas.height = height;
+
+      Promise.all([
+        new Promise(resolve => graphImg.onload = resolve),
+        new Promise(resolve => mergeImg.onload = resolve)
+      ]).then(function() {
+        context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
+
+        context.save();
+        context.globalCompositeOperation = 'multiply';
+        context.drawImage(mergeImg, 0, 0, width, height);
+        context.restore();
+
+        context.fillStyle = '#fff';
+        context.lineWidth = width/1440;
+        context.fillRect(0, height - 1, width, height);
+        context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
+
+        context.font = labelPos/24 + 'px serif';
+        context.fillStyle = 'black';
+        context.textAlign = 'right';
+        if(credit.checked)context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
+
+        download.href = preview.src = canvas.toDataURL();
+      });
+
+      graphImg.src = calculator.screenshot({
+        width: 320,
+        height: 320,
+        targetPixelRatio: 2
+      });
+
+      var e = calculator.getExpressions().find(exp => exp.latex);
+      calculator.setExpression({id: e.id, lineWidth: '4'});
+      calculator.setExpression({
+        id: 'background',
+        latex: 'x^2>-1',
+        color: 'white',
+        fillOpacity: '1',
+        secret: true
+      });
+      if(hideLaTeX.checked) var label = '?????????';
+      else var label = e.latex;
+      calculator.setExpression({
+        id: 'label',
+        latex: '\\left(0,-' + labelPos + '\\right)',
+        color: 'black',
+        label: '`' + label + '`',
+        hidden: true,
+        showLabel: true,
+        secret: true,
+        labelSize: labelSize.value * labelPos + '/1440'
+      });
+      calculator.asyncScreenshot({
+        showLabels: true,
+        width: width >> 1,
+        height: height >> 1,
+        targetPixelRatio: 2,
+        mathBounds: {left: -width >> 1, right: width >> 1, bottom: -height, top: height}
+      }, function(s) {
+        mergeImg.src = s;
+        calculator.removeExpression({id: 'background'});
+        calculator.removeExpression({id: 'label'});
+        calculator.setExpression({id: e.id, lineWidth: e.lineWidth});
+        scrollTo(pageX, pageY);
+      });
+    }
+
+  </script>
+
+</body>
+</html>
