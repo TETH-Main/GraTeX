@@ -24,4 +24,4 @@ The equation in the output image is taken from the top LaTeX equation in the Des
 【彳▼亍 ▼てきちょく】- [TETH_Main](https://twitter.com/TETH_Main)
 
 ## License
-This project is licensed under the MIT [License](https://github.com/TETH-Main/GraTeX/blob/add-license-1/LICENSE) - see the LICENSE file for details.
+This project is licensed under the MIT [License](https://github.com/TETH-Main/GraTeX/blob/main/LICENSE) - see the LICENSE file for details.
