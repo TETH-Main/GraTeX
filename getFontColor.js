@@ -33,9 +33,6 @@ const getContrastRatio = (color1, color2) => {
 const getFontColor = (color) => {
     const whiteRatio = getContrastRatio(color, {red: 0, green: 0, blue: 0})
     const blackRatio = getContrastRatio(color, {red: 255, green: 255, blue: 255})
-    console.log(color);
-    console.log(blackRatio);
-    console.log(whiteRatio);
     return whiteRatio < blackRatio ? WHITE : BLACK
 }
 
@@ -44,6 +41,5 @@ function contrast(color) {
     green = color.slice(3, 5);
     blue = color.slice(5, 7);
     const backgroundColor = {red: parseInt(red, 16), green: parseInt(green, 16), blue: parseInt(blue, 16)};
-    console.log(backgroundColor);
     return getFontColor(backgroundColor);
 }
