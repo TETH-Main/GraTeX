@@ -92,7 +92,7 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="col stretch">
+          <div class="col">
             <label><input type="checkbox" id="widegraph">Wide graph</label>
           </div>
           <div class="col">
@@ -163,7 +163,6 @@
         new Promise(resolve => graphImg.onload = resolve),
         new Promise(resolve => mergeImg.onload = resolve)
       ]).then(function() {
-        context.globalCompositeOperation = 'normal';
         context.fillStyle = color.value;
         context.fillRect(0, 0, width, height);
 
@@ -176,7 +175,8 @@
 
         context.globalCompositeOperation = 'multiply';
         context.drawImage(mergeImg, 0, 0, width, height);
-
+        
+        context.globalCompositeOperation = 'normal';
         context.fillRect(0, height - 1, width, height);
 
         context.font = labelPos/24 + 'px serif';
