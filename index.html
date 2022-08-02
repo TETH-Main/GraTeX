@@ -180,7 +180,7 @@
         context.fillRect(0, height - 1, width, height);
 
         context.font = labelPos/24 + 'px serif';
-        context.fillStyle = 'white';
+        context.fillStyle = contrast(color.value).fontColor;
         context.textAlign = 'right';
         if(credit.checked)context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
 
