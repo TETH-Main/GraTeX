@@ -164,7 +164,9 @@
         new Promise(resolve => graphImg.onload = resolve),
         new Promise(resolve => mergeImg.onload = resolve)
       ]).then(function() {
+        context.globalCompositeOperation = 'normal';
         context.fillStyle = color.value;
+        context.save();
         context.fillRect(0, 0, width, height);
 
         context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
@@ -174,10 +176,12 @@
         if(widegraph.checked) context.strokeRect((width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
         else context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
-        context.globalCompositeOperation = contrast(color.value).composite;
+        reverse();
+        context.globalCompositeOperation = 'multiply';
         context.drawImage(mergeImg, 0, 0, width, height);
-        console.log(contrast(color.value));
-        context.globalCompositeOperation = 'normal';
+        reverse();
+
+        context.restore();
         context.fillRect(0, height - 1, width, height);
 
         context.font = labelPos/24 + 'px serif';
@@ -205,7 +209,7 @@
       calculator.setExpression({
         id: 'background',
         latex: 'x^2>-1',
-        color: contrast(color.value).backgroundColor,
+        color: 'white',
         fillOpacity: '1',
         secret: true
       });
@@ -214,7 +218,7 @@
       calculator.setExpression({
         id: 'label',
         latex: '\\left(0,-' + labelPos + '\\right)',
-        color: contrast(color.value).fontColor,
+        color: 'black',
         label: '`' + label + '`',
         hidden: true,
         showLabel: true,
@@ -234,6 +238,14 @@
         calculator.setExpression({id: e.id, lineWidth: e.lineWidth});
         scrollTo(pageX, pageY);
       });
+    }
+
+    function reverse() {
+      if(contrast(color.value) == 'white') {
+        context.globalCompositeOperation = 'difference';
+        context.fillStyle = "#FFFFFF";
+        context.fillRect(0, 0, 1920, 1080);
+      }
     }
 
   </script>
