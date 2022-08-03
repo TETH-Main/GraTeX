@@ -1,8 +1,5 @@
 // https://zenn.dev/mryhryki/articles/2020-11-12-hatena-background-color
 
-const BLACK = {fontColor : '#000000', backgroundColor : '#FFFFFF', composite : 'multiply'}
-const WHITE = {fontColor : '#FFFFFF', backgroundColor : '#000000', composite : 'lighter'}
-
 // 人間の視覚特性にあった輝度に変換する
 const getRGBForCalculateLuminance = (_color) => {
     const color = _color / 255
@@ -33,7 +30,7 @@ const getContrastRatio = (color1, color2) => {
 const getFontColor = (color) => {
     const whiteRatio = getContrastRatio(color, {red: 0, green: 0, blue: 0})
     const blackRatio = getContrastRatio(color, {red: 255, green: 255, blue: 255})
-    return whiteRatio < blackRatio ? WHITE : BLACK
+    return whiteRatio < blackRatio ? 'white' : 'black'
 }
 
 function contrast(color) {
