@@ -152,6 +152,7 @@
       var pageY = pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
       var pageX = pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
       scrollTo(0, 0);
+      containerElt.style.display = 'none';
 
       var graphImg = new Image();
       var mergeImg = new Image();
@@ -236,6 +237,7 @@
         calculator.removeExpression({id: 'label'});
         calculator.setExpression({id: e.id, lineWidth: e.lineWidth});
         scrollTo(pageX, pageY);
+        containerElt.style.display = 'block';
       });
     }
 
