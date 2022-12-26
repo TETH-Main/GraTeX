@@ -139,6 +139,13 @@
     var download = document.getElementById('downloadButton');
     var labelSize = document.forms.labelSize.elements[0];
     var imageDimension = document.forms.imageDimension.elements[0];
+    
+    window.onload = function() {
+      var q = getUrlQueries();
+      if(q['widegraph']) widegraph.checked = true;
+      if(q['credit']) credit.checked = true;
+      if(q['hideLateX']) hideLaTeX.checked = true;
+    }
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -247,6 +254,20 @@
         context.fillStyle = "#FFFFFF";
         context.fillRect(0, 0, 1920, 1080);
       }
+    }
+    
+    function getUrlQueries() {
+      var queryStr = window.location.search.slice(1);
+          queries = {};
+
+      if (!queryStr) return queries;
+
+      queryStr.split('&').forEach(function(queryStr) {
+        var queryArr = queryStr.split('=');
+        queries[queryArr[0]] = queryArr[1];
+      });
+
+      return queries;
     }
 
   </script>
