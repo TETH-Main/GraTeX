@@ -142,9 +142,9 @@
     
     window.onload = function() {
       var q = getUrlQueries();
-      if(q['widegraph']) widegraph.checked = true;
+      if(q['wide']) widegraph.checked = true;
       if(q['credit']) credit.checked = true;
-      if(q['hideLateX']) hideLaTeX.checked = true;
+      if(q['hide']) hideLaTeX.checked = true;
     }
 
     var canvas = document.createElement('canvas');
