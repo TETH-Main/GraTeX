@@ -26,7 +26,7 @@
 
     gtag('config', 'G-1JR9SZ33HJ');
   </script>
-  <script src="https://www.desmos.com/api/v1.7/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <script src="https://www.desmos.com/api/v1.8/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
   <title>Graph + LaTeX Generator</title>
 </head>
 <body>
@@ -46,6 +46,9 @@
       <br>
       Thanks to <a href="https://twitter.com/graphemecluster" target="_blank">graphemecluster</a>, I was able to create this site. Thank you very much.
     </p>
+    <h4>Invite the Discord bot</h4>
+    <h4><a href="https://dsc.gg/gratex">https://dsc.gg/gratex</a></h4>
+    Thanks to <a href="https://twitter.com/Pixelated_Donut" target="_blank">ronwnor</a>, I was able to create discord bot. Thank you very much.
   </div>
   <div class="container">
     <div id="calculator"></div>
@@ -103,6 +106,16 @@
             <label><input type="checkbox" id="hideLaTeX">Hide LaTeX</label>
           </div>
         </div>
+        <div class="form-row">
+          <div class="col stretch">
+            <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1" placeholder="fill in Desmos Graphing Caluculator hash."></textarea>
+          </div>
+          <div class="col">
+            <button class="btn btn-import" id="import-button" type="button" onclick="importGraph()">
+              <span>Import</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -139,12 +152,13 @@
     var download = document.getElementById('downloadButton');
     var labelSize = document.forms.labelSize.elements[0];
     var imageDimension = document.forms.imageDimension.elements[0];
-    
+
     window.onload = function() {
       var q = getUrlQueries();
-      if(q['wide']) widegraph.checked = true;
-      if(q['credit']) credit.checked = true;
-      if(q['hide']) hideLaTeX.checked = true;
+      if(q['widegraph'] || q['Widegraph'] || q['wideGraph'] || q['WideGraph'] || q['wide'] || q['Wide'] || q['w'] || q['W']) widegraph.checked = true;
+      if(q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
+      if(q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
+      if(q['url'] !== undefined) loadGraph(q['url']);
     }
 
     var canvas = document.createElement('canvas');
@@ -209,7 +223,7 @@
         width: 640,
         height: 320,
         targetPixelRatio: 2
-      });
+      });      
 
       var e = calculator.getExpressions().find(exp => exp.latex);
       calculator.setExpression({id: e.id, lineWidth: '4'});
@@ -255,7 +269,7 @@
         context.fillRect(0, 0, 1920, 1080);
       }
     }
-    
+
     function getUrlQueries() {
       var queryStr = window.location.search.slice(1);
           queries = {};
@@ -268,6 +282,33 @@
       });
 
       return queries;
+    }
+
+    function importGraph() {
+      var hash = document.getElementById("desmos-hash").value;
+      if(hash !== "") loadGraph(hash);
+    }
+
+    function loadGraph(hash) {
+      var url = 'https://saved-work.desmos.com/calc-states/production/'+hash;
+      expression_states = JSON.parse(getJSON(url)).expressions;
+      expression_states['list'].forEach(expression_state => {
+        calculator.setExpression(expression_state);
+      });
+    }
+
+    function getJSON(uri) {
+      var req = new XMLHttpRequest();
+      var json = '';
+      req.onreadystatechange = function(callback){
+        var callback = arguments[0];
+        if(req.readyState == 4 && req.status == 200){
+          json = req.responseText;
+        }
+      };
+      req.open("GET", uri, false);
+      req.send();
+      return json;
     }
 
   </script>
