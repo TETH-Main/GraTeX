@@ -14,15 +14,19 @@
       line-height: 1.2;
     }
     h1, h2, h3, h4, h5, h6 {
-    margin-top: 0;
-    margin-bottom: .5rem;
+      margin-top: 0;
+      margin-bottom: .5rem;
+      font-weight:bold
     }
     div {
-    display: block;
-    margin-top: 0em;
+      display: block;
+      margin-top: 0em;
     }
     .h3, h3 {
       font-size: 1.75rem;
+    }
+    .h3, h3 {
+      font-size: 1.5rem;
     }
     p {
       margin-top: 0;
@@ -216,6 +220,16 @@
       color: #fff;
       background-color: #17a2b8;
       border-color: #17a2b8;
+    }
+    .btn-import {
+      color: #fff;
+      background-color: #22b817;
+      border-color: #22b817;
+    }
+    textarea {
+      resize: none;
+      width:150px;
+      height:100%;
     }
     .footer {
       margin-bottom: 0;
