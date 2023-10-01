@@ -50,7 +50,14 @@
     Thanks to <a href="https://twitter.com/Pixelated_Donut" target="_blank">ronwnor</a>, I was able to create discord bot. Thank you very much.
   </div>
   <div class="container">
+    <div class="version-switch">
+      <input type="radio" name="version" id="version-2d" value="version-2d" checked>
+      <label for="version-2d">2D</label>                  
+      <input type="radio" name="version" id="version-3d" value="version-3d">
+      <label for="version-3d">3D</label>
+    </div>
     <div id="calculator"></div>
+    <iframe id="calculator-3d" src="./3d.html"></iframe>
     <div class="card">
       <div class="card-body">
         <div class="form-row">
@@ -110,7 +117,17 @@
         </div>
         <div class="form-row">
           <div class="col stretch">
-            <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1" placeholder="Fill in a Desmos Graphing Caluculator hash…"></textarea>
+            <textarea
+              class="form-control"
+              id="desmos-hash"
+              name="test"
+              cols="10"
+              rows="1"
+              placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"></textarea>
           </div>
           <div class="col">
             <button class="btn btn-import" id="import-button" type="button">
@@ -139,13 +156,6 @@
     </footer>
   </nav>
 
-  <script>
-    var calcElt = document.getElementById('calculator');
-    var calculator = Desmos.GraphingCalculator(calcElt, {
-      pasteGraphLink: true
-    });
-    calculator.setExpression({latex: 'x^2+y^2=10'});
-  </script>
   <script src="./gratex.js"></script>
 
 </body>

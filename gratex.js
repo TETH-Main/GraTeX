@@ -1,3 +1,9 @@
+var calcElt = document.getElementById('calculator');
+var calculator = Desmos.GraphingCalculator(calcElt, {
+  pasteGraphLink: true
+});
+calculator.setExpression({ latex: 'x^2+y^2=10' });
+
 var btnElt = document.getElementById('screenshot-button');
 btnElt.addEventListener('click', generate);
 
@@ -15,6 +21,7 @@ var color = document.getElementById('color');
 var widegraph = document.getElementById('widegraph');
 var credit = document.getElementById('credit');
 var hideLaTeX = document.getElementById('hideLaTeX');
+var desmosHash = document.getElementById('desmos-hash');
 
 window.onload = () => {
     var q = getUrlQueries();
@@ -22,6 +29,21 @@ window.onload = () => {
     if (q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
     if (q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
     if (q['url'] !== undefined) loadGraph(q['url']);
+};
+
+var calc3DElt = document.getElementById('calculator-3d');
+calc3DElt.style.display = 'none';
+document.querySelectorAll('input[name="version"]').forEach(element => {
+    element.addEventListener('change', event => {
+        var is2D = event.target.value === 'version-2d';
+        calcElt.style.display = is2D ? '' : 'none';
+        calc3DElt.style.display = is2D ? 'none' : '';
+    });
+});
+
+var calculator3D;
+calc3DElt.onload = () => {
+    calculator3D = calc3DElt.contentWindow.Calc;
 };
 
 var canvas = document.createElement('canvas');
@@ -40,8 +62,7 @@ function generate() {
 
     var graphImg = new Image();
     var mergeImg = new Image();
-    var widegraphImg = new Image();
-    var [width, height, graphSize, graphMargin, labelPos] = imageDimension.value.split(",").map(num => +num);
+    var [width, height, graphSize, graphMargin, labelPos] = imageDimension.value.split(',').map(num => +num);
     canvas.width = width;
     canvas.height = height;
 
@@ -54,8 +75,8 @@ function generate() {
         context.save();
         context.fillRect(0, 0, width, height);
 
-        context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
-        if (widegraph.checked) context.drawImage(widegraphImg, (width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
+        if (widegraph.checked) context.drawImage(graphImg, (width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
+        else context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
         context.lineWidth = width / 1440;
         if (widegraph.checked) context.strokeRect((width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
@@ -76,20 +97,15 @@ function generate() {
         download.href = preview.src = canvas.toDataURL();
     });
 
-    graphImg.src = calculator.screenshot({
-        width: 320,
+    var calc = document.querySelector('input[name="version"]:checked').value === 'version-2d' ? calculator : calculator3D;
+    graphImg.src = calc.screenshot({
+        width: 320 * (widegraph.checked + 1),
         height: 320,
         targetPixelRatio: 2
     });
 
-    widegraphImg.src = calculator.screenshot({
-        width: 640,
-        height: 320,
-        targetPixelRatio: 2
-    });
-
-    var e = calculator.getExpressions().find(exp => exp.latex);
-    calculator.setExpression({
+    var e = calc.getExpressions().find(exp => exp.latex);
+    calc.setExpression({
         id: e.id,
         lineWidth: '4'
     });
@@ -131,7 +147,7 @@ function generate() {
         calculator.removeExpression({
             id: 'label'
         });
-        calculator.setExpression({
+        calc.setExpression({
             id: e.id,
             lineWidth: e.lineWidth
         });
@@ -141,9 +157,9 @@ function generate() {
 }
 
 function reverse() {
-    if (contrast(color.value) == 'white') {
+    if (contrast(color.value) === 'white') {
         context.globalCompositeOperation = 'difference';
-        context.fillStyle = "#FFFFFF";
+        context.fillStyle = '#FFFFFF';
         context.fillRect(0, 0, 1920, 1080);
     }
 }
@@ -153,11 +169,24 @@ function getUrlQueries() {
 }
 
 function importGraph() {
-    var hash = document.getElementById("desmos-hash").value;
-    if (hash !== "") loadGraph(hash);
+    var hash = desmosHash.value;
+    if (hash) {
+        var match = /^\s*(?:https?:\/\/)?(?:[-a-zA-Z0-9]*\.)?desmos\.com(?::[0-9]+)?\/(calculator|3d)\/([^?#\/\s]+)/.exec(hash);
+        if (match) loadGraph(match[2], match[1] === 'calculator');
+        else loadGraph(hash, document.querySelector('input[name="version"]:checked').value === 'version-2d');
+    }
 }
 
-function loadGraph(hash) {
-    var url = 'https://saved-work.desmos.com/calc-states/production/' + hash;
-    fetch(url).then(response => response.json()).then(state => calculator.setState(state));
+function loadGraph(hash, is2D) {
+    var url = is2D
+        ? 'https://saved-work.desmos.com/calc-states/production/'
+        : 'https://saved-work.desmos.com/calc-3d-states/production/';
+    url += hash;
+    fetch(url).then(response => response.json()).then(state => {
+        document.getElementById(is2D ? 'version-2d' : 'version-3d').checked = true;
+        (is2D ? calculator : calculator3D).setState(state);
+        desmosHash.value = '';
+        calcElt.style.display = is2D ? '' : 'none';
+        calc3DElt.style.display = is2D ? 'none' : '';
+    });
 }
