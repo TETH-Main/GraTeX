@@ -14,9 +14,8 @@
   <meta property="og:site_name" content="GraTeX" />
   <meta property="og:image" content="https://teth-main.github.io/GraTeX/img/card.png" />
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" type="text/css" href="https://teth-main.github.io/GraTeX/style.css">
+  <link rel="stylesheet" type="text/css" href="./style.css">
   <script src="./getFontColor.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
   <script>
@@ -27,7 +26,6 @@
     gtag('config', 'G-1JR9SZ33HJ');
   </script>
   <script src="https://www.desmos.com/api/v1.9/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-  <script src="./calculator.js"></script>
   <title>Graph + LaTeX Generator</title>
 </head>
 <body>
@@ -96,15 +94,15 @@
         </div>
         <div class="form-row">
           <div class="col stretch">
-            <label><input type="color" value="#FFFFFF" id="color"> background Color</label>
+            <label><input type="color" value="#FFFFFF" id="color"> Background Color</label>
           </div>
         </div>
         <div class="form-row">
           <div class="col">
-            <label><input type="checkbox" id="widegraph">Wide graph</label>
+            <label><input type="checkbox" id="widegraph">Wide Graph</label>
           </div>
           <div class="col">
-            <label><input type="checkbox" id="credit">Add credit</label>
+            <label><input type="checkbox" id="credit">Add Credit</label>
           </div>
           <div class="col">
             <label><input type="checkbox" id="hideLaTeX">Hide LaTeX</label>
@@ -112,7 +110,7 @@
         </div>
         <div class="form-row">
           <div class="col stretch">
-            <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1" placeholder="fill in Desmos Graphing Caluculator hash."></textarea>
+            <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1" placeholder="Fill in a Desmos Graphing Caluculator hash…"></textarea>
           </div>
           <div class="col">
             <button class="btn btn-import" id="import-button" type="button">

@@ -11,13 +11,18 @@ var download = document.getElementById('downloadButton');
 var labelSize = document.forms.labelSize.elements[0];
 var imageDimension = document.forms.imageDimension.elements[0];
 
+var color = document.getElementById('color');
+var widegraph = document.getElementById('widegraph');
+var credit = document.getElementById('credit');
+var hideLaTeX = document.getElementById('hideLaTeX');
+
 window.onload = () => {
     var q = getUrlQueries();
     if (q['widegraph'] || q['Widegraph'] || q['wideGraph'] || q['WideGraph'] || q['wide'] || q['Wide'] || q['w'] || q['W']) widegraph.checked = true;
     if (q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
     if (q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
     if (q['url'] !== undefined) loadGraph(q['url']);
-}
+};
 
 var canvas = document.createElement('canvas');
 var context = canvas.getContext('2d');
@@ -43,7 +48,7 @@ function generate() {
     Promise.all([
         new Promise(resolve => graphImg.onload = resolve),
         new Promise(resolve => mergeImg.onload = resolve)
-    ]).then(function () {
+    ]).then(() => {
         context.globalCompositeOperation = 'normal';
         context.fillStyle = color.value;
         context.save();
@@ -96,7 +101,7 @@ function generate() {
         secret: true
     });
     var label = e.latex;
-    if (hideLaTeX.checked) var label = '?????????';
+    if (hideLaTeX.checked) label = '?????????';
     calculator.setExpression({
         id: 'label',
         latex: '\\left(0,-' + labelPos + '\\right)',
@@ -118,7 +123,7 @@ function generate() {
             bottom: -height,
             top: height
         }
-    }, function (s) {
+    }, s => {
         mergeImg.src = s;
         calculator.removeExpression({
             id: 'background'
@@ -144,17 +149,7 @@ function reverse() {
 }
 
 function getUrlQueries() {
-    var queryStr = window.location.search.slice(1);
-    queries = {};
-
-    if (!queryStr) return queries;
-
-    queryStr.split('&').forEach(function (queryStr) {
-        var queryArr = queryStr.split('=');
-        queries[queryArr[0]] = queryArr[1];
-    });
-
-    return queries;
+    return Object.fromEntries(new URLSearchParams(location.search).entries());
 }
 
 function importGraph() {
@@ -164,22 +159,5 @@ function importGraph() {
 
 function loadGraph(hash) {
     var url = 'https://saved-work.desmos.com/calc-states/production/' + hash;
-    expression_states = JSON.parse(getJSON(url)).expressions;
-    expression_states['list'].forEach(expression_state => {
-        calculator.setExpression(expression_state);
-    });
-}
-
-function getJSON(uri) {
-    var req = new XMLHttpRequest();
-    var json = '';
-    req.onreadystatechange = function (callback) {
-        var callback = arguments[0];
-        if (req.readyState == 4 && req.status == 200) {
-            json = req.responseText;
-        }
-    };
-    req.open("GET", uri, false);
-    req.send();
-    return json;
+    fetch(url).then(response => response.json()).then(state => calculator.setState(state));
 }
