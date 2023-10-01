@@ -1,8 +1,14 @@
 var calcElt = document.getElementById('calculator');
-var calculator = Desmos.GraphingCalculator(calcElt, {
+var calculator2D = Desmos.GraphingCalculator(calcElt, {
   pasteGraphLink: true
 });
-calculator.setExpression({ latex: 'x^2+y^2=10' });
+calculator2D.setExpression({ latex: 'x^2+y^2=10' });
+
+var calculatorLabel = Desmos.GraphingCalculator(document.createElement('div'), {
+    showGrid: false,
+    showXAxis: false,
+    showYAxis: false
+});
 
 var btnElt = document.getElementById('screenshot-button');
 btnElt.addEventListener('click', generate);
@@ -49,11 +55,6 @@ calc3DElt.onload = () => {
 var canvas = document.createElement('canvas');
 var context = canvas.getContext('2d');
 
-preview.onload = () => {
-    containerElt.style.display = 'block';
-    preview.onload = null;
-};
-
 function generate() {
     var pageY = pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
     var pageX = pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
@@ -97,28 +98,20 @@ function generate() {
         download.href = preview.src = canvas.toDataURL();
     });
 
-    var calc = document.querySelector('input[name="version"]:checked').value === 'version-2d' ? calculator : calculator3D;
-    graphImg.src = calc.screenshot({
+    var calculator = document.querySelector('input[name="version"]:checked').value === 'version-2d' ? calculator2D : calculator3D;
+    graphImg.src = calculator.screenshot({
         width: 320 * (widegraph.checked + 1),
         height: 320,
         targetPixelRatio: 2
     });
 
-    var e = calc.getExpressions().find(exp => exp.latex);
-    calc.setExpression({
+    var e = calculator.getExpressions().find(exp => exp.latex);
+    calculator.setExpression({
         id: e.id,
         lineWidth: '4'
     });
-    calculator.setExpression({
-        id: 'background',
-        latex: 'x^2>-1',
-        color: 'white',
-        fillOpacity: '1',
-        secret: true
-    });
-    var label = e.latex;
-    if (hideLaTeX.checked) label = '?????????';
-    calculator.setExpression({
+    var label = hideLaTeX.checked ? '?????????' : e.latex;
+    calculatorLabel.setExpression({
         id: 'label',
         latex: '\\left(0,-' + labelPos + '\\right)',
         color: 'black',
@@ -128,7 +121,7 @@ function generate() {
         secret: true,
         labelSize: labelSize.value * labelPos + '/1440'
     });
-    calculator.asyncScreenshot({
+    calculatorLabel.asyncScreenshot({
         showLabels: true,
         width: width >> 1,
         height: height >> 1,
@@ -141,13 +134,7 @@ function generate() {
         }
     }, s => {
         mergeImg.src = s;
-        calculator.removeExpression({
-            id: 'background'
-        });
-        calculator.removeExpression({
-            id: 'label'
-        });
-        calc.setExpression({
+        calculator.setExpression({
             id: e.id,
             lineWidth: e.lineWidth
         });
@@ -184,7 +171,7 @@ function loadGraph(hash, is2D) {
     url += hash;
     fetch(url).then(response => response.json()).then(state => {
         document.getElementById(is2D ? 'version-2d' : 'version-3d').checked = true;
-        (is2D ? calculator : calculator3D).setState(state);
+        (is2D ? calculator2D : calculator3D).setState(state);
         desmosHash.value = '';
         calcElt.style.display = is2D ? '' : 'none';
         calc3DElt.style.display = is2D ? 'none' : '';
