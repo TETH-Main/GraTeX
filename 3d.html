@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html no_gl="true" lang="en" class="dcg-calculator-api-container">
+  <head>
+    <link rel="stylesheet" href="https://www.desmos.com/assets/build/calculator_3d-1f0fffdc2726de491008fd5a66eb4bfae6ba3c44.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      #dcg-header-container, #dcg-modal-container, #mygraphs-container, .dcg-explist-3d-getting-started-container {
+        display: none;
+      }
+      .dcg-calculator-api-container #graph-container {
+        top: 0;
+      }
+      .dcg-calculator-api-container .dcg-container.dcg-default-border {
+        border-right: none;
+      }
+      @font-face {
+        font-family: dcg-icons-2023-09-18;
+        src: url("dcg-icons-2023-09-18.woff2") format("woff2");
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dcg-loading-div-container"></div>
+    <div class="dcg-sliding-interior">
+      <div id="dcg-header-container"></div>
+      <div id="graph-container"></div>
+    </div>
+    <div id="mygraphs-container"></div>
+    <div id="dcg-modal-container"></div>
+    <script>
+      navigator.userLanguage = 'en';
+      document.body.dataset.loadData = JSON.stringify({
+          seed: Array.from({ length: 4 }, () => Math.random().toString(16).padEnd(10, '0').slice(2, 10)).join('')
+      });
+    </script>
+    <script src="https://www.desmos.com/assets/build/calculator_3d-9306e6bf9b4b6b815d57a6300976075b35dffb9b.js"></script>
+    <script>
+      Calc.updateSettings({ border: true });
+      Calc.setExpression({ latex: 'x^2+y^2+z^2=10' });
+      Calc.controller.hasUnsavedChanges = () => false;
+    </script>
+  </body>
+</html>
