@@ -1,6 +1,7 @@
 var calcElt = document.getElementById('calculator');
 var calculator2D = Desmos.GraphingCalculator(calcElt, {
-  pasteGraphLink: true
+    border: false,
+    pasteGraphLink: true
 });
 calculator2D.setExpression({ latex: 'x^2+y^2=10' });
 

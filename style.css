@@ -131,6 +131,12 @@
       width: 100%;
       height: 500px;
       border: none;
+      border-right: 1px solid rgba(0, 0, 0, 0.2);
+    }
+    #calculator {
+      margin-bottom: 5.5px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.2);
     }
     .version-switch {
       position: relative;
