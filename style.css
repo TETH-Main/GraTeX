@@ -269,6 +269,7 @@
       color: #fff;
       background-color: #22b817;
       border-color: #22b817;
+      padding: .375rem 1.375rem;
     }
     textarea {
       resize: none;
