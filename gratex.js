@@ -57,14 +57,10 @@ var canvas = document.createElement('canvas');
 var context = canvas.getContext('2d');
 
 function generate() {
-    var pageY = pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
-    var pageX = pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
-    scrollTo(0, 0);
-    containerElt.style.display = 'none';
-
     var graphImg = new Image();
     var mergeImg = new Image();
     var [width, height, graphSize, graphMargin, labelPos] = imageDimension.value.split(',').map(num => +num);
+    var doubleGraphSize = graphSize << 1;
     canvas.width = width;
     canvas.height = height;
 
@@ -73,21 +69,19 @@ function generate() {
         new Promise(resolve => graphImg.onload = resolve),
         new Promise(resolve => mergeImg.onload = resolve)
     ]).then(() => {
-        context.globalCompositeOperation = 'normal';
         context.fillStyle = color.value;
-        context.save();
         context.fillRect(0, 0, width, height);
 
         var invertGraph = is2D && calculator2D.graphSettings.invertedColors;
         var invertLabel = contrast(color.value) === 'white';
         if (invertGraph) reverse();
 
-        if (widegraph.checked) context.drawImage(graphImg, (width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
+        if (widegraph.checked) context.drawImage(graphImg, (width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
         else context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
         if (invertGraph !== invertLabel) reverse();
         context.lineWidth = width / 1440;
-        if (widegraph.checked) context.strokeRect((width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
+        if (widegraph.checked) context.strokeRect((width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
         else context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
         context.globalCompositeOperation = 'multiply';
@@ -98,25 +92,24 @@ function generate() {
         if (credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
         if (invertLabel) reverse();
 
-        context.restore();
-        context.fillRect(0, height - 1, width, height);
-
         download.href = preview.src = canvas.toDataURL();
+        preview.style.maxWidth = width + 'px';
+        containerElt.style.display = 'block';
     });
 
     var calculator = is2D ? calculator2D : calculator3D;
-    graphImg.src = calculator.screenshot({
+    var exp = calculator.getExpressions().find(exp => exp.latex);
+    if (!exp) return;
+
+    calculator.asyncScreenshot({
+        showLabels: true,
         width: 320 * (widegraph.checked + 1),
         height: 320,
-        targetPixelRatio: 2
-    });
+        targetPixelRatio: graphSize / 320
+    }, s => graphImg.src = s);
 
-    var e = calculator.getExpressions().find(exp => exp.latex);
-    calculator.setExpression({
-        id: e.id,
-        lineWidth: '4'
-    });
-    var label = hideLaTeX.checked ? '?????????' : e.latex;
+    var label = hideLaTeX.checked ? '?????????' : exp.latex;
+    var ratio = (Math.min(width, height) >= 360) + 1;
     calculatorLabel.setExpression({
         id: 'label',
         latex: '\\left(0,-' + labelPos + '\\right)',
@@ -125,28 +118,20 @@ function generate() {
         hidden: true,
         showLabel: true,
         secret: true,
-        labelSize: labelSize.value * labelPos + '/1440'
+        labelSize: labelSize.value * labelPos + '/' + 720 * ratio
     });
     calculatorLabel.asyncScreenshot({
         showLabels: true,
-        width: width >> 1,
-        height: height >> 1,
-        targetPixelRatio: 2,
+        width: width / ratio,
+        height: height / ratio,
+        targetPixelRatio: ratio,
         mathBounds: {
-            left: -width >> 1,
-            right: width >> 1,
+            left: -width / ratio,
+            right: width / ratio,
             bottom: -height,
             top: height
         }
-    }, s => {
-        mergeImg.src = s;
-        calculator.setExpression({
-            id: e.id,
-            lineWidth: e.lineWidth
-        });
-        scrollTo(pageX, pageY);
-        containerElt.style.display = 'block';
-    });
+    }, s => mergeImg.src = s);
 }
 
 function reverse() {
