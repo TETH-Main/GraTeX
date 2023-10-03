@@ -189,16 +189,13 @@
     }
     .form-row {
       display: flex;
+      flex-wrap: wrap;
       align-content: center;
       align-items: flex-end;
       column-gap: 15px;
     }
     #label-radio {
-      flex-wrap: wrap;
       align-items: flex-start;
-    }
-    #label-radio .form-row {
-      flex-wrap: wrap;
     }
     @media screen and (min-width: 576px) and (max-width: 768px) {
       #label-radio {
