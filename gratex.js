@@ -116,12 +116,11 @@ function generate() {
     });
 
     const calculator = is2D ? calculator2D : calculator3D;
-    calculator.asyncScreenshot({
-        showLabels: true,
+    graphImg.src = calculator.screenshot({
         width: 320 * (widegraph.checked + 1),
         height: 320,
         targetPixelRatio: graphSize / 320
-    }, s => graphImg.src = s);
+    });
 
     const ratio = (Math.min(width, height) >= 360) + 1;
     calculatorLabelScreenshot.setExpression({
