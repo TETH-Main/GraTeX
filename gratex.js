@@ -35,6 +35,11 @@ window.onload = () => {
     if (q['widegraph'] || q['Widegraph'] || q['wideGraph'] || q['WideGraph'] || q['wide'] || q['Wide'] || q['w'] || q['W']) widegraph.checked = true;
     if (q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
     if (q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
+    if (q['3d']) {
+        document.getElementById('version-3d').checked = true;
+        calcElt.style.display = 'none';
+        calc3DElt.style.display = '';
+    }
     importGraph(q['url']);
 };
 
