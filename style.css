@@ -90,8 +90,6 @@
     }
     .col {
       position: relative;
-      padding-right: 15px;
-      padding-left: 15px;
     }
     .stretch {
       flex: 1;
@@ -163,6 +161,9 @@
       border-top-right-radius: 0;
       border-bottom-right-radius: 0;
     }
+    #form-container > .card-body {
+      padding: 1.5rem 2rem 2rem;
+    }
     .form-group {
       margin-bottom: 10px;
     }
@@ -185,12 +186,15 @@
       display: flex;
       align-content: center;
       align-items: flex-end;
+      gap: 15px;
     }
     .preview {
       border: 1px solid #000;
     }
     #preview {
-      border:  1px solid rgba(0,0,0,.125);
+      display: block;
+      margin: auto;
+      border: 1px solid rgba(0,0,0,.125);
       width: 100%;
       height: auto;
     }
@@ -232,6 +236,7 @@
       color: #fff;
       background-color: #17a2b8;
       border-color: #17a2b8;
+      margin-top: 8px;
     }
     .btn-import {
       color: #fff;
