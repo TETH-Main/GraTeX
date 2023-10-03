@@ -40,7 +40,7 @@ window.onload = () => {
         calcElt.style.display = 'none';
         calc3DElt.style.display = '';
     }
-    importGraph(q['url']);
+    importGraph(q['url'] || q['hash']);
 };
 
 var calc3DElt = document.getElementById('calculator-3d');
