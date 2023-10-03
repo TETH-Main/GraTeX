@@ -32,9 +32,9 @@ var desmosHash = document.getElementById('desmos-hash');
 
 window.onload = () => {
     var q = getUrlQueries();
-    if (q['widegraph'] || q['Widegraph'] || q['wideGraph'] || q['WideGraph'] || q['wide'] || q['Wide'] || q['w'] || q['W']) widegraph.checked = true;
-    if (q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
-    if (q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
+    if (q['widegraph'] || q['wide'] || q['w']) widegraph.checked = true;
+    if (q['addcredit'] || q['credit'] || q['c']) credit.checked = true;
+    if (q['hidelatex'] || q['hide'] || q['h']) hideLaTeX.checked = true;
     if (q['3d']) {
         document.getElementById('version-3d').checked = true;
         calcElt.style.display = 'none';
@@ -147,7 +147,7 @@ function reverse() {
 }
 
 function getUrlQueries() {
-    return Object.fromEntries(Array.from(new URLSearchParams(location.search), ([key, value]) => [key, value || true]));
+    return Object.fromEntries(Array.from(new URLSearchParams(location.search), ([key, value]) => [key.toLowerCase(), value || true]));
 }
 
 function importGraph(hash) {
