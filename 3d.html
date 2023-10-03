@@ -5,7 +5,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-      #dcg-header-container, #dcg-modal-container, #mygraphs-container, .dcg-explist-3d-getting-started-container {
+      #dcg-header-container,
+      #dcg-modal-container,
+      #mygraphs-container,
+      .dcg-explist-3d-getting-started-container {
         display: none;
       }
       .dcg-calculator-api-container #graph-container {
@@ -16,7 +19,7 @@
       }
       @font-face {
         font-family: dcg-icons-2023-09-18;
-        src: url("dcg-icons-2023-09-18.woff2") format("woff2");
+        src: url('dcg-icons-2023-09-18.woff2') format('woff2');
       }
     </style>
   </head>
@@ -31,7 +34,7 @@
     <script>
       navigator.userLanguage = 'en';
       document.body.dataset.loadData = JSON.stringify({
-          seed: Array.from({ length: 4 }, () => Math.random().toString(16).padEnd(10, '0').slice(2, 10)).join('')
+        seed: Array.from({ length: 4 }, () => Math.random().toString(16).padEnd(10, '0').slice(2, 10)).join('')
       });
     </script>
     <script src="https://www.desmos.com/assets/build/calculator_3d-9306e6bf9b4b6b815d57a6300976075b35dffb9b.js"></script>

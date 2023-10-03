@@ -1,0 +1,15 @@
+{
+  "printWidth": 240,
+  "arrowParens": "avoid",
+  "trailingComma": "none",
+  "singleQuote": true,
+  "overrides": [
+    {
+      "files": "*.js",
+      "options": {
+        "tabWidth": 4,
+        "printWidth": 120
+      }
+    }
+  ]
+}
