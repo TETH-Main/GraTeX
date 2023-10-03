@@ -68,6 +68,7 @@ function generate() {
     canvas.width = width;
     canvas.height = height;
 
+    var is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
     Promise.all([
         new Promise(resolve => graphImg.onload = resolve),
         new Promise(resolve => mergeImg.onload = resolve)
@@ -77,21 +78,25 @@ function generate() {
         context.save();
         context.fillRect(0, 0, width, height);
 
+        var invertGraph = is2D && calculator2D.graphSettings.invertedColors;
+        var invertLabel = contrast(color.value) === 'white';
+        if (invertGraph) reverse();
+
         if (widegraph.checked) context.drawImage(graphImg, (width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
         else context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
+        if (invertGraph !== invertLabel) reverse();
         context.lineWidth = width / 1440;
         if (widegraph.checked) context.strokeRect((width - (graphSize << 1)) >> 1, graphMargin, graphSize << 1, graphSize);
         else context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
-        reverse();
         context.globalCompositeOperation = 'multiply';
         context.drawImage(mergeImg, 0, 0, width, height);
         context.font = labelPos / 24 + 'px serif';
         context.fillStyle = 'black';
         context.textAlign = 'right';
         if (credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
-        reverse();
+        if (invertLabel) reverse();
 
         context.restore();
         context.fillRect(0, height - 1, width, height);
@@ -99,7 +104,7 @@ function generate() {
         download.href = preview.src = canvas.toDataURL();
     });
 
-    var calculator = document.querySelector('input[name="version"]:checked').value === 'version-2d' ? calculator2D : calculator3D;
+    var calculator = is2D ? calculator2D : calculator3D;
     graphImg.src = calculator.screenshot({
         width: 320 * (widegraph.checked + 1),
         height: 320,
@@ -145,11 +150,10 @@ function generate() {
 }
 
 function reverse() {
-    if (contrast(color.value) === 'white') {
-        context.globalCompositeOperation = 'difference';
-        context.fillStyle = '#FFFFFF';
-        context.fillRect(0, 0, 1920, 1080);
-    }
+    context.globalCompositeOperation = 'difference';
+    context.fillStyle = 'white';
+    context.fillRect(0, 0, 1920, 1080);
+    context.globalCompositeOperation = 'normal';
 }
 
 function getUrlQueries() {
