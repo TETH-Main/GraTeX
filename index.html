@@ -60,6 +60,27 @@
     <iframe id="calculator-3d" src="./3d.html"></iframe>
     <div class="card" id="form-container">
       <div class="card-body">
+        <div class="form-row" id="label-radio">
+          <div class="col stretch">
+            <div class="form-group">
+              <label>Label</label>
+              <div class="form-row">
+                <div class="col">
+                  <label><input type="radio" name="label" value="hide" id="hideLaTeX">Hide</label>
+                </div>
+                <div class="col">
+                  <label><input type="radio" name="label" value="top-expression" checked>Use Top Expression</label>
+                </div>
+                <div class="col">
+                  <label><input type="radio" name="label" value="custom">Custom Label (Multiline)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div id="calculator-label"></div>
+          </div>
+        </div>
         <div class="form-row">
           <div class="col stretch">
             <div class="form-group">
@@ -110,9 +131,6 @@
           </div>
           <div class="col">
             <label><input type="checkbox" id="credit">Add Credit</label>
-          </div>
-          <div class="col">
-            <label><input type="checkbox" id="hideLaTeX">Hide LaTeX</label>
           </div>
         </div>
         <div class="form-row">

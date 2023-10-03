@@ -5,7 +5,20 @@ var calculator2D = Desmos.GraphingCalculator(calcElt, {
 });
 calculator2D.setExpression({ latex: 'x^2+y^2=10' });
 
-var calculatorLabel = Desmos.GraphingCalculator(document.createElement('div'), {
+var calcLabelElt = document.getElementById('calculator-label');
+calcLabelElt.style.display = 'none';
+var calculatorLabel = Desmos.GraphingCalculator(calcLabelElt, {
+    border: false,
+    graphpaper: false,
+    settingsMenu: false,
+    images: false,
+    folders: false,
+    notes: false,
+    sliders: false,
+    actions: false,
+    branding: false
+});
+var calculatorLabelScreenshot = Desmos.GraphingCalculator(document.createElement('div'), {
     showGrid: false,
     showXAxis: false,
     showYAxis: false
@@ -103,9 +116,6 @@ function generate() {
     });
 
     var calculator = is2D ? calculator2D : calculator3D;
-    var exp = calculator.getExpressions().find(exp => exp.latex);
-    if (!exp) return;
-
     calculator.asyncScreenshot({
         showLabels: true,
         width: 320 * (widegraph.checked + 1),
@@ -113,19 +123,18 @@ function generate() {
         targetPixelRatio: graphSize / 320
     }, s => graphImg.src = s);
 
-    var label = hideLaTeX.checked ? '?????????' : exp.latex;
     var ratio = (Math.min(width, height) >= 360) + 1;
-    calculatorLabel.setExpression({
+    calculatorLabelScreenshot.setExpression({
         id: 'label',
         latex: '\\left(0,-' + labelPos + '\\right)',
         color: 'black',
-        label: '`' + label + '`',
+        label: '`' + getLabel(calculator) + '`',
         hidden: true,
         showLabel: true,
         secret: true,
         labelSize: labelSize.value * labelPos + '/' + 720 * ratio
     });
-    calculatorLabel.asyncScreenshot({
+    calculatorLabelScreenshot.asyncScreenshot({
         showLabels: true,
         width: width / ratio,
         height: height / ratio,
@@ -170,4 +179,40 @@ function loadGraph(hash, is2D) {
         calcElt.style.display = is2D ? '' : 'none';
         calc3DElt.style.display = is2D ? 'none' : '';
     });
+}
+
+document.querySelectorAll('input[name="label"]').forEach(element => {
+    element.addEventListener('change', event => {
+        calcLabelElt.style.display = event.target.value === 'custom' ? '' : 'none';
+    });
+});
+
+function getLabel(calculator) {
+    switch (document.querySelector('input[name="label"]:checked').value) {
+        case 'hide':
+            return '?????????';
+        case 'top-expression':
+            var exp = calculator.getExpressions().find(exp => exp.latex);
+            return exp ? exp.latex : '?????????';
+        case 'custom':
+            var exps = calculatorLabel.getExpressions().flatMap(exp => exp.latex ? [`\\textcolor{black}{${exp.latex}}`] : '');
+            var spacing = Math.max(Math.ceil(Math.log2(exps.length)) - 1, 1);
+            return exps.length ? `\\textcolor{transparent}{${groupLines(exps, spacing)}}` : '?????????';
+    }
+}
+
+// https://github.com/FuriousChocolate/LaTeXmos/blob/main/website/convert.js
+function groupLines(lines, n) {
+    var newLines = [];
+    for (var i = 0; i < lines.length - 1; i += 2) {
+        newLines.push(`\\binom{${lines[i]}}{${nestOverline(lines[i + 1], n * 3)}}`);
+    }
+    if (lines.length & 1) {
+        newLines.push(`\\left(${lines[lines.length - 1]}\\right)`);
+    }
+    return newLines.length === 1 ? newLines[0] : groupLines(newLines, n - 1);
+}
+
+function nestOverline(line, n) {
+    return n ? nestOverline(`\\overline{${line}}`, --n) : line;
 }
