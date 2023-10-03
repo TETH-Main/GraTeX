@@ -84,8 +84,8 @@ function generate() {
 
     const is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
     Promise.all([
-        new Promise(resolve => graphImg.onload = resolve),
-        new Promise(resolve => mergeImg.onload = resolve)
+        new Promise(resolve => (graphImg.onload = resolve)),
+        new Promise(resolve => (mergeImg.onload = resolve))
     ]).then(() => {
         context.fillStyle = color.value;
         context.fillRect(0, 0, width, height);
@@ -94,12 +94,14 @@ function generate() {
         const invertLabel = contrast(color.value) === 'white';
         if (invertGraph) reverse();
 
-        if (widegraph.checked) context.drawImage(graphImg, (width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
+        if (widegraph.checked)
+            context.drawImage(graphImg, (width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
         else context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
         if (invertGraph !== invertLabel) reverse();
         context.lineWidth = width / 1440;
-        if (widegraph.checked) context.strokeRect((width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
+        if (widegraph.checked)
+            context.strokeRect((width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
         else context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
 
         context.globalCompositeOperation = 'multiply';
@@ -133,18 +135,21 @@ function generate() {
         secret: true,
         labelSize: labelSize.value * labelPos + '/' + 720 * ratio
     });
-    calculatorLabelScreenshot.asyncScreenshot({
-        showLabels: true,
-        width: width / ratio,
-        height: height / ratio,
-        targetPixelRatio: ratio,
-        mathBounds: {
-            left: -width / ratio,
-            right: width / ratio,
-            bottom: -height,
-            top: height
-        }
-    }, s => mergeImg.src = s);
+    calculatorLabelScreenshot.asyncScreenshot(
+        {
+            showLabels: true,
+            width: width / ratio,
+            height: height / ratio,
+            targetPixelRatio: ratio,
+            mathBounds: {
+                left: -width / ratio,
+                right: width / ratio,
+                bottom: -height,
+                top: height
+            }
+        },
+        s => (mergeImg.src = s)
+    );
 }
 
 function reverse() {
@@ -155,12 +160,15 @@ function reverse() {
 }
 
 function getUrlQueries() {
-    return Object.fromEntries(Array.from(new URLSearchParams(location.search), ([key, value]) => [key.toLowerCase(), value || true]));
+    return Object.fromEntries(
+        Array.from(new URLSearchParams(location.search), ([key, value]) => [key.toLowerCase(), value || true])
+    );
 }
 
 function importGraph(hash) {
     if (hash) {
-        const match = /^\s*(?:https?:\/\/)?(?:[-a-zA-Z0-9]*\.)?desmos\.com(?::[0-9]+)?\/(calculator|3d)\/([^?#\/\s]+)/.exec(hash);
+        const match =
+            /^\s*(?:https?:\/\/)?(?:[-a-zA-Z0-9]*\.)?desmos\.com(?::[0-9]+)?\/(calculator|3d)\/([^?#\/\s]+)/.exec(hash);
         if (match) loadGraph(match[2], match[1] === 'calculator');
         else loadGraph(hash, document.querySelector('input[name="version"]:checked').value === 'version-2d');
     }
@@ -171,13 +179,15 @@ function loadGraph(hash, is2D) {
         ? 'https://saved-work.desmos.com/calc-states/production/'
         : 'https://saved-work.desmos.com/calc-3d-states/production/';
     url += hash;
-    fetch(url).then(response => response.json()).then(state => {
-        document.getElementById(is2D ? 'version-2d' : 'version-3d').checked = true;
-        (is2D ? calculator2D : calculator3D).setState(state);
-        desmosHash.value = '';
-        calcElt.style.display = is2D ? '' : 'none';
-        calc3DElt.style.display = is2D ? 'none' : '';
-    });
+    fetch(url)
+        .then(response => response.json())
+        .then(state => {
+            document.getElementById(is2D ? 'version-2d' : 'version-3d').checked = true;
+            (is2D ? calculator2D : calculator3D).setState(state);
+            desmosHash.value = '';
+            calcElt.style.display = is2D ? '' : 'none';
+            calc3DElt.style.display = is2D ? 'none' : '';
+        });
 }
 
 document.querySelectorAll('input[name="label"]').forEach(element => {
@@ -194,7 +204,9 @@ function getLabel(calculator) {
             const exp = calculator.getExpressions().find(exp => exp.latex);
             return exp ? exp.latex : '?????????';
         case 'custom':
-            const exps = calculatorLabel.getExpressions().flatMap(exp => exp.latex ? [`\\textcolor{black}{${exp.latex}}`] : '');
+            const exps = calculatorLabel
+                .getExpressions()
+                .flatMap(exp => (exp.latex ? [`\\textcolor{black}{${exp.latex}}`] : ''));
             const spacing = Math.max(Math.ceil(Math.log2(exps.length)) - 1, 1);
             return exps.length ? `\\textcolor{transparent}{${groupLines(exps, spacing)}}` : '?????????';
     }
