@@ -78,7 +78,6 @@ function generate() {
     const graphImg = new Image();
     const mergeImg = new Image();
     const [width, height, graphSize, graphMargin, labelPos] = imageDimension.value.split(',').map(num => +num);
-    const doubleGraphSize = graphSize << 1;
     canvas.width = width;
     canvas.height = height;
 
@@ -94,15 +93,13 @@ function generate() {
         const invertLabel = contrast(color.value) === 'white';
         if (invertGraph) reverse();
 
-        if (widegraph.checked)
-            context.drawImage(graphImg, (width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
-        else context.drawImage(graphImg, (width - graphSize) >> 1, graphMargin, graphSize, graphSize);
+        const graphWidth = graphSize * (widegraph.checked + 1);
+        const graphLeft = (width - graphWidth) >> 1;
+        context.drawImage(graphImg, graphLeft, graphMargin, graphWidth, graphSize);
 
         if (invertGraph !== invertLabel) reverse();
         context.lineWidth = width / 1440;
-        if (widegraph.checked)
-            context.strokeRect((width - doubleGraphSize) >> 1, graphMargin, doubleGraphSize, graphSize);
-        else context.strokeRect((width - graphSize) >> 1, graphMargin, graphSize, graphSize);
+        context.strokeRect(graphLeft, graphMargin, graphWidth, graphSize);
 
         context.globalCompositeOperation = 'multiply';
         context.drawImage(mergeImg, 0, 0, width, height);
