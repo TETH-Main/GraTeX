@@ -15,7 +15,7 @@ var btnElt = document.getElementById('screenshot-button');
 btnElt.addEventListener('click', generate);
 
 var btnImp = document.getElementById('import-button');
-btnImp.addEventListener('click', importGraph);
+btnImp.addEventListener('click', () => importGraph(desmosHash.value));
 
 var containerElt = document.getElementById('generate-container');
 
@@ -35,7 +35,7 @@ window.onload = () => {
     if (q['widegraph'] || q['Widegraph'] || q['wideGraph'] || q['WideGraph'] || q['wide'] || q['Wide'] || q['w'] || q['W']) widegraph.checked = true;
     if (q['credit'] || q['Credit'] || q['addcredit'] || q['Addcredit'] || q['AddCredit'] || q['c'] || q['C']) credit.checked = true;
     if (q['hideLaTeX'] || q['HideLaTeX'] || q['hidelatex'] || q['Hidelatex'] || q['hide'] || q['Hide'] || q['h'] || q['H']) hideLaTeX.checked = true;
-    if (q['url'] !== undefined) loadGraph(q['url']);
+    if (q['url']) importGraph(q['url']);
 };
 
 var calc3DElt = document.getElementById('calculator-3d');
@@ -142,11 +142,10 @@ function reverse() {
 }
 
 function getUrlQueries() {
-    return Object.fromEntries(new URLSearchParams(location.search).entries());
+    return Object.fromEntries(new URLSearchParams(location.search));
 }
 
-function importGraph() {
-    var hash = desmosHash.value;
+function importGraph(hash) {
     if (hash) {
         var match = /^\s*(?:https?:\/\/)?(?:[-a-zA-Z0-9]*\.)?desmos\.com(?::[0-9]+)?\/(calculator|3d)\/([^?#\/\s]+)/.exec(hash);
         if (match) loadGraph(match[2], match[1] === 'calculator');
