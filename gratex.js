@@ -142,7 +142,7 @@ function reverse() {
 }
 
 function getUrlQueries() {
-    return Object.fromEntries(new URLSearchParams(location.search));
+    return Object.fromEntries(Array.from(new URLSearchParams(location.search), ([key, value]) => [key, value || true]));
 }
 
 function importGraph(hash) {
