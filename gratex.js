@@ -34,6 +34,7 @@ const containerElt = document.getElementById('generate-container');
 
 const preview = document.getElementById('preview');
 const download = document.getElementById('downloadButton');
+const labelFont = document.forms.labelFont.elements[0];
 const labelSize = document.forms.labelSize.elements[0];
 const imageDimension = document.forms.imageDimension.elements[0];
 
@@ -121,12 +122,13 @@ function generate() {
         targetPixelRatio: graphSize / 320
     });
 
+    const label = getLabel(calculator);
     const ratio = (Math.min(width, height) >= 360) + 1;
     calculatorLabelScreenshot.setExpression({
         id: 'label',
-        latex: '\\left(0,-' + labelPos + '\\right)',
+        latex: `\\left(0,-${labelPos}\\right)`,
         color: 'black',
-        label: '`' + getLabel(calculator) + '`',
+        label: `\`${labelFont.value ? `\\${labelFont.value}{${label}}` : label}\``,
         hidden: true,
         showLabel: true,
         secret: true,
