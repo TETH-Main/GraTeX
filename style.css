@@ -292,3 +292,15 @@ textarea {
 .footer {
   margin-bottom: 0;
 }
+
+.multiline-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.multiline-item {
+  display: block;
+}
