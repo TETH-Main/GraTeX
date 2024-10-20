@@ -18,6 +18,7 @@ const calculatorLabel = Desmos.GraphingCalculator(calcLabelElt, {
     actions: false,
     branding: false
 });
+
 const calculatorLabelScreenshot = Desmos.GraphingCalculator(document.createElement('div'), {
     showGrid: false,
     showXAxis: false,
@@ -126,7 +127,7 @@ function generate() {
     const ratio = (Math.min(width, height) >= 360) + 1;
     calculatorLabelScreenshot.setExpression({
         id: 'label',
-        latex: `\\left(0,-${labelPos}\\right)`,
+        latex: `\\left(0,-${labelPos / ratio}\\right)`,
         color: 'black',
         label: `\`${labelFont.value ? `\\${labelFont.value}{${label}}` : label}\``,
         hidden: true,
@@ -203,7 +204,26 @@ function getLabel(calculator) {
             const exp = calculator.getExpressions().find(exp => exp.latex);
             return exp ? exp.latex : '?????????';
         case 'custom':
-            const exps = calculatorLabel.getExpressions().map(exp => `\\class{multiline-item}{${exp.latex ?? ''}}`);
-            return exps.length ? `\\class{multiline-list}{${exps.join('')}}` : '?????????';
+            const exps = calculatorLabel
+                .getExpressions()
+                .flatMap(exp => (exp.latex ? [`\\textcolor{black}{${exp.latex}}`] : ''));
+            const spacing = Math.max(Math.ceil(Math.log2(exps.length)) - 1, 1);
+            return exps.length ? `\\textcolor{transparent}{${groupLines(exps, spacing)}}` : '?????????';
     }
+}
+
+// https://github.com/FuriousChocolate/LaTeXmos/blob/main/website/convert.js
+function groupLines(lines, n) {
+    const newLines = [];
+    for (let i = 0; i < lines.length - 1; i += 2) {
+        newLines.push(`\\binom{${lines[i]}}{${nestOverline(lines[i + 1], n * 3)}}`);
+    }
+    if (lines.length & 1) {
+        newLines.push(`\\left(${lines[lines.length - 1]}\\right)`);
+    }
+    return newLines.length === 1 ? newLines[0] : groupLines(newLines, n - 1);
+}
+
+function nestOverline(line, n) {
+    return n ? nestOverline(`\\overline{${line}}`, --n) : line;
 }
