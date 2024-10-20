@@ -203,10 +203,7 @@ function getLabel(calculator) {
             const exp = calculator.getExpressions().find(exp => exp.latex);
             return exp ? exp.latex : '?????????';
         case 'custom':
-            const exps = calculatorLabel
-                .getExpressions()
-                .flatMap(exp => (exp.latex ? [`\\textcolor{black}{${exp.latex}}`] : ''));
-            const spacing = Math.max(Math.ceil(Math.log2(exps.length)) - 1, 1);
-            return exps.length ? `\\textcolor{transparent}{${groupLines(exps, spacing)}}` : '?????????';
+            const exps = calculatorLabel.getExpressions().map(exp => `\\class{multiline-item}{${exp.latex ?? ''}}`);
+            return exps.length ? `\\class{multiline-list}{${exps.join('')}}` : '?????????';
     }
 }
