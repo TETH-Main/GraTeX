@@ -18,7 +18,6 @@ const calculatorLabel = Desmos.GraphingCalculator(calcLabelElt, {
     actions: false,
     branding: false
 });
-
 const calculatorLabelScreenshot = Desmos.GraphingCalculator(document.createElement('div'), {
     showGrid: false,
     showXAxis: false,
@@ -210,20 +209,4 @@ function getLabel(calculator) {
             const spacing = Math.max(Math.ceil(Math.log2(exps.length)) - 1, 1);
             return exps.length ? `\\textcolor{transparent}{${groupLines(exps, spacing)}}` : '?????????';
     }
-}
-
-// https://github.com/FuriousChocolate/LaTeXmos/blob/main/website/convert.js
-function groupLines(lines, n) {
-    const newLines = [];
-    for (let i = 0; i < lines.length - 1; i += 2) {
-        newLines.push(`\\binom{${lines[i]}}{${nestOverline(lines[i + 1], n * 3)}}`);
-    }
-    if (lines.length & 1) {
-        newLines.push(`\\left(${lines[lines.length - 1]}\\right)`);
-    }
-    return newLines.length === 1 ? newLines[0] : groupLines(newLines, n - 1);
-}
-
-function nestOverline(line, n) {
-    return n ? nestOverline(`\\overline{${line}}`, --n) : line;
 }
