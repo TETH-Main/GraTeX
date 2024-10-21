@@ -126,7 +126,7 @@ function generate() {
     const ratio = (Math.min(width, height) >= 360) + 1;
     calculatorLabelScreenshot.setExpression({
         id: 'label',
-        latex: `\\left(0,-${labelPos}\\right)`,
+        latex: `\\left(0,-${labelPos / ratio}\\right)`,
         color: 'black',
         label: `\`${labelFont.value ? `\\${labelFont.value}{${label}}` : label}\``,
         hidden: true,
