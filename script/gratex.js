@@ -42,13 +42,16 @@ class GraTeXApp {
     initElements() {
         this.containerElt = document.getElementById('generate-container');
         this.preview = document.getElementById('preview');
-        this.download = document.getElementById('downloadButton');
+        this.downloadPNG = document.getElementById('downloadPNGButton');
         this.labelFont = document.forms.labelFont.elements[0];
         this.labelSize = document.forms.labelSize.elements[0];
         this.imageDimension = document.forms.imageDimension.elements[0];
         this.color = document.getElementById('color');
+        this.frame = document.getElementById('frame');
         this.widegraph = document.getElementById('widegraph');
         this.credit = document.getElementById('credit');
+        this.graphOnly = document.getElementById('graph-only');
+        this.fullCapture = document.getElementById('full-capture');
         this.hideLaTeX = document.getElementById('hideLaTeX');
         this.desmosHash = document.getElementById('desmos-hash');
 
@@ -92,6 +95,7 @@ class GraTeXApp {
     generate() {
         const graphImg = new Image();
         const mergeImg = new Image();
+        const fullCaptureImg = new Image();
         const [width, height, graphSize, graphMargin, labelPos] = this.imageDimension.value.split(',').map(num => +num);
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
@@ -101,7 +105,8 @@ class GraTeXApp {
         const is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
         Promise.all([
             new Promise(resolve => (graphImg.onload = resolve)),
-            new Promise(resolve => (mergeImg.onload = resolve))
+            new Promise(resolve => (mergeImg.onload = resolve)),
+            new Promise(resolve => (fullCaptureImg.onload = resolve))
         ]).then(() => {
             context.fillStyle = this.color.value;
             context.fillRect(0, 0, width, height);
@@ -112,21 +117,31 @@ class GraTeXApp {
 
             const graphWidth = graphSize * (this.widegraph.checked + 1);
             const graphLeft = (width - graphWidth) >> 1;
-            context.drawImage(graphImg, graphLeft, graphMargin, graphWidth, graphSize);
+
+            // graphOnlyの場合 グラフを中央に描きlatexを消す
+            context.drawImage(graphImg, graphLeft, 
+                this.graphOnly.checked ? (height - graphSize) >> 1 : graphMargin,
+                graphWidth, graphSize);
 
             if (invertGraph !== invertLabel) this.reverse(context);
             context.lineWidth = width / 1440;
-            context.strokeRect(graphLeft, graphMargin, graphWidth, graphSize);
 
+            if (this.frame.checked) context.strokeRect(graphLeft,
+                this.graphOnly.checked ? (height - graphSize) >> 1 : graphMargin,
+                graphWidth, graphSize);
+
+            // 透過で画像合成できるよう乗算
             context.globalCompositeOperation = 'multiply';
-            context.drawImage(mergeImg, 0, 0, width, height);
+            if (!this.graphOnly.checked) context.drawImage(mergeImg, 0, 0, width, height);
             context.font = labelPos / 24 + 'px serif';
             context.fillStyle = 'black';
             context.textAlign = 'right';
             if (this.credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
             if (invertLabel) this.reverse(context);
 
-            this.download.href = this.preview.src = canvas.toDataURL();
+            let imgSrc = this.fullCapture.checked ? fullCaptureImg.src : canvas.toDataURL();
+            this.downloadPNG.href = this.preview.src = imgSrc;
+
             this.preview.style.maxWidth = width + 'px';
             this.containerElt.style.display = 'block';
         });
@@ -165,6 +180,11 @@ class GraTeXApp {
             },
             s => (mergeImg.src = s)
         );
+
+        fullCaptureImg.src = calculator.screenshot({
+            width: width,
+            height: height
+        });
     }
 
     reverse(context) {
@@ -217,6 +237,7 @@ class GraTeXApp {
                 return exps.length ? `\\class{multiline-list}{${exps.join('')}}` : '?????????';
         }
     }
+
 }
 
 // アプリケーションの起動
