@@ -9,12 +9,13 @@
     <link rel="icon" sizes="16x16" href="https://teth-main.github.io/GraTeX/img/icon-16x16.png" />
     <meta property="og:url" content="https://teth-main.github.io/GraTeX/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Graph + LaTeX Generator" />
+    <meta property="og:title" content="Graph        LaTeX Generator" />
     <meta property="og:description" content="GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents." />
     <meta property="og:site_name" content="GraTeX" />
     <meta property="og:image" content="https://teth-main.github.io/GraTeX/img/card.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" type="text/css" href="./style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="./script/getFontColor.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
@@ -26,13 +27,13 @@
       gtag('js', new Date());
       gtag('config', 'G-1JR9SZ33HJ');
     </script>
-    <script src="https://www.desmos.com/api/v1.10/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-    <title>Graph + LaTeX Generator</title>
+    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+    <title>Graph        LaTeX Generator</title>
   </head>
   <body>
     <nav class="navbar navbar-light bg-light">
       <header>
-        <h3><a class="navbar-brand" href="https://teth-main.github.io/GraTeX/">Graph + LaTeX = GraTeX</a></h3>
+        <h3><a class="navbar-brand" href="https://teth-main.github.io/GraTeX/">Graph        LaTeX = GraTeX</a></h3>
       </header>
     </nav>
     <div class="container">
@@ -61,6 +62,27 @@
       <iframe id="calculator-3d" src="./3d.html"></iframe>
       <div class="card" id="form-container">
         <div class="card-body">
+          <div class="form-row">
+            <div class="col stretch">
+              <textarea
+                class="form-control"
+                id="desmos-hash"
+                name="test"
+                cols="10"
+                rows="1"
+                placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+              ></textarea>
+            </div>
+            <div class="col">
+              <button class="btn btn-import" id="import-button" type="button">
+                <span>Import</span>
+              </button>
+            </div>
+          </div>
           <div class="form-row" id="label-radio">
             <div class="col stretch">
               <div class="form-group">
@@ -114,6 +136,61 @@
                 </form>
               </div>
             </div>
+          </div>
+
+          <div class="form-group">
+            <button id="advanced-options" class="advanced-options-button" aria-expanded="false">
+              Advanced Options
+              <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
+                <path d="M2 8l4 -4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <div id="advanced-menu" class="advanced-menu" style="display: none;">
+              <div class="advanced-menu-section">
+                <label>
+                  <input type="checkbox" class="option-checkbox" id="frame" checked/>
+                  <span class="option-button">
+                    <i class="fas fa-plus-square"></i>
+                    Add Frame
+                  </span>
+                </label>
+                <label>
+                  <input type="checkbox" class="option-checkbox" id="widegraph" />
+                  <span class="option-button">
+                    <i class="fa-solid fa-left-right"></i>
+                    Wide Graph
+                  </span>
+                </label>
+                <label>
+                  <input type="checkbox" class="option-checkbox" id="credit" />
+                  <span class="option-button">
+                    <i class="fa-solid fa-id-card"></i>
+                    Add Credit
+                  </span>
+                </label>
+                <label>
+                  <input type="checkbox" class="option-checkbox" id="graph-only" />
+                  <span class="option-button">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Graph Only
+                  </span>
+                </label>
+                <label>
+                  <input type="checkbox" class="option-checkbox" id="full-capture" />
+                  <span class="option-button">
+                    <i class="fa-solid fa-panorama"></i>
+                    Full Capture
+                  </span>
+                </label>
+              </div>
+              <div class="form-row">
+                <div class="col">
+                  <label><input type="color" value="#FFFFFF" id="color" /> Background Color</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
             <div class="col stretch">
               <div class="form-group">
                 <label>Image Dimension</label>
@@ -137,40 +214,6 @@
               </button>
             </div>
           </div>
-          <div class="form-row">
-            <div class="col">
-              <label><input type="color" value="#FFFFFF" id="color" /> Background Color</label>
-            </div>
-            <div class="form-row">
-              <div class="col">
-                <label><input type="checkbox" id="widegraph" />Wide Graph</label>
-              </div>
-              <div class="col">
-                <label><input type="checkbox" id="credit" />Add Credit</label>
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="col stretch">
-              <textarea
-                class="form-control"
-                id="desmos-hash"
-                name="test"
-                cols="10"
-                rows="1"
-                placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…"
-                autocomplete="off"
-                autocorrect="off"
-                autocapitalize="off"
-                spellcheck="false"
-              ></textarea>
-            </div>
-            <div class="col">
-              <button class="btn btn-import" id="import-button" type="button">
-                <span>Import</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -178,8 +221,8 @@
       <div class="card">
         <div class="card-body">
           <img id="preview" alt="Preview" />
-          <a class="btn btn-download" id="downloadButton" role="button" download="GraTeX.png">
-            <span>Save Image</span>
+          <a class="btn btn-download" id="downloadPNGButton" role="button" download="GraTeX.png">
+            <span>Save PNG</span>
           </a>
         </div>
       </div>
@@ -190,5 +233,20 @@
       </footer>
     </nav>
     <script src="./script/gratex.js"></script>
+    <script>
+      // Add this to your existing JavaScript
+      document.addEventListener('DOMContentLoaded', function() {
+        const advancedButton = document.getElementById('advanced-options');
+        const advancedMenu = document.getElementById('advanced-menu');
+      
+        // Toggle dropdown
+        advancedButton.addEventListener('click', function() {
+          const isExpanded = advancedButton.getAttribute('aria-expanded') === 'true';
+          advancedButton.setAttribute('aria-expanded', !isExpanded);
+          advancedMenu.style.display = isExpanded ? 'none' : 'block';
+        });
+
+      });
+    </script>
   </body>
 </html>
