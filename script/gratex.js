@@ -36,7 +36,7 @@ class GraTeXApp {
         btnElt.addEventListener('click', () => this.generate());
 
         const btnImp = document.getElementById('import-button');
-        btnImp.addEventListener('click', () => this.importGraph(desmosHash.value));
+        btnImp.addEventListener('click', () => this.importGraph(this.desmosHash.value));
     }
 
     initElements() {
