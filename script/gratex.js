@@ -136,20 +136,19 @@ class GraTeXApp {
                 return '?????????';
             case 'top-expression':
                 const exp = calculator.getExpressions().find(exp => exp.latex);
-                if (format === 'png') return exp ? exp.latex : '?????????';
-                else if (format === 'svg') return exp ? `\\begin{gather} \\${font}{${exp.latex}} \\end{gather}` : '?????????';
-                return exp ? exp.latex : '?????????';
+                if (!exp) return '?????????';
+                if (format === 'png') return exp.latex;
+                else if (format === 'svg') return `${font ? `\\${font}{${exp.latex}}` : exp.latex}`;
             case 'custom':
                 const exps = this.calculatorLabel.getExpressions().map(exp => exp.latex ?? '');
+                if (exps.length === 0) return '?????????';
                 if (format === 'png') {
                     const labels = exps.map(e => `\\class{multiline-item}{${e ?? ''}}`);
-                    return labels.length ? `\\class{multiline-list}{${labels.join('')}}` : '?????????';
+                    return `\\class{multiline-list}{${labels.join('')}}`;
                 } else if (format === 'svg') {
                     const labels = exps.map(e => e.replace(/ /g, "\\ ").trim());
                     const fontWrappedLabels = labels.map(line => font ? `\\${font}{${line}}` : line);
-                    return fontWrappedLabels.length ? `\\begin{gather} ${fontWrappedLabels.join(" \\\\ ")} \\end{gather}` : '?????????';
-                } else {
-                    return '?????????';
+                    return `\\begin{gather} ${fontWrappedLabels.join(" \\\\ ")} \\end{gather}`;
                 }
         }
     }
