@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="./style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="./script/getFontColor.js"></script>
+    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
     <script>
@@ -28,7 +29,7 @@
       gtag('config', 'G-1JR9SZ33HJ');
     </script>
     <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-    <title>Graph        LaTeX Generator</title>
+    <title>Graph + LaTeX Generator</title>
   </head>
   <body>
     <nav class="navbar navbar-light bg-light">
@@ -221,6 +222,11 @@
       <div class="card">
         <div class="card-body">
           <img id="preview" alt="Preview" />
+          <div id="svg-preview" alt="Preview" style="display: none;"></div>
+          <div id="mathjax-preview" alt="Preview" style="display: none;"></div>
+          <a class="btn btn-download" id="downloadSVGButton" role="button" download="GraTeX.svg">
+            <span>Save SVG</span>
+          </a>
           <a class="btn btn-download" id="downloadPNGButton" role="button" download="GraTeX.png">
             <span>Save PNG</span>
           </a>
@@ -232,7 +238,7 @@
         <h3 class="navbar-brand">By <a href="https://twitter.com/TETH_Main">TETH_Main</a> | <a href="https://github.com/TETH-Main/GraTeX/">Source Code</a></h3>
       </footer>
     </nav>
-    <script src="./script/gratex.js"></script>
+    <script type="module" src="./script/gratex.js"></script>
     <script>
       // Add this to your existing JavaScript
       document.addEventListener('DOMContentLoaded', function() {
