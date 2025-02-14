@@ -172,6 +172,7 @@ export class GraTeXUtils {
 
             // mathjaxで(pathで描かれた)latexを追加
             const label = this.app.getLabel(calculator, 'svg', this.app.labelFont.value);
+            console.log(label);
             this.app.mathjaxPreview.innerHTML = `\\( ${label} \\)`;
             MathJax.typesetPromise([this.app.mathjaxPreview]);
 
