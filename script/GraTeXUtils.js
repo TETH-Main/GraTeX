@@ -172,7 +172,6 @@ export class GraTeXUtils {
 
             // mathjaxで(pathで描かれた)latexを追加
             const label = this.app.getLabel(calculator, 'svg', this.app.labelFont.value);
-            console.log(this.app.labelFont.value)
             this.app.mathjaxPreview.innerHTML = `\\( ${label} \\)`;
             MathJax.typesetPromise([this.app.mathjaxPreview]);
 
@@ -189,7 +188,6 @@ export class GraTeXUtils {
             const svgScale = 0.065 * this.app.labelSize.value / 4; // default=4, 0.065調整
             const svgWidth = defaultSvgWidth * svgScale;
             const svgLeft = (this.width - svgWidth) >> 1;
-            console.log(defaultSvgWidth, svgWidth)
             const invertLabel = ColorUtils.contrast(this.app.color.value) === 'white';
 
             for (let i = 0; i < elements.length; i++) {
