@@ -172,7 +172,6 @@ export class GraTeXUtils {
 
             // mathjaxで(pathで描かれた)latexを追加
             const label = this.app.getLabel(calculator, 'svg', this.app.labelFont.value);
-            console.log(label);
             this.app.mathjaxPreview.innerHTML = `\\( ${label} \\)`;
             MathJax.typesetPromise([this.app.mathjaxPreview]);
 
@@ -186,10 +185,11 @@ export class GraTeXUtils {
             const mathjaxElement = document.getElementsByTagName('mjx-container')[0].childNodes[0]
             const svgElements = mathjaxElement.childNodes;
             const defaultSvgWidth = 8 * 54.5 * parseFloat(mathjaxElement.getAttribute('width')); // defaulでの横幅pxサイズ (8px/1em, x5.45 = fontSize:4)
-            const svgScale = 0.065 * this.app.labelSize.value / 4; // default=4, 0.065調整
+            const svgScale = 0.065 * (this.app.labelSize.value / 4) * (this.labelPos / 720); // default=4, 0.065調整
             const svgWidth = defaultSvgWidth * svgScale;
             const svgLeft = (this.width - svgWidth) >> 1;
-            const invertLabel = ColorUtils.contrast(this.app.color.value) === 'white';
+            const svgMargin = (1000 * svgScale + this.height + this.labelPos) >> 1; // 1000*svgScale = 1行の高さ height+labelPos = 1行目の位置
+            const labelColor = ColorUtils.contrast(this.app.color.value);
 
             for (let i = 0; i < elements.length; i++) {
                 const element = svgElements[i];
@@ -199,10 +199,10 @@ export class GraTeXUtils {
                     const clonedElement = element.cloneNode(true);
                     clonedElement.setAttribute(
                         'transform', 
-                        `translate(${svgLeft}, ${50 + (this.height + this.labelPos) >> 1}) scale(${svgScale}, -${svgScale})`
+                        `translate(${svgLeft}, ${svgMargin}) scale(${svgScale}, -${svgScale})`
                     );
-                    clonedElement.setAttribute('fill', invertLabel ? 'white' : 'black');
-                    clonedElement.setAttribute('stroke', invertLabel ? 'white' : 'black');
+                    clonedElement.setAttribute('fill', labelColor);
+                    clonedElement.setAttribute('stroke', labelColor);
                     SVGcanvas.appendChild(clonedElement);
                 }
             }
