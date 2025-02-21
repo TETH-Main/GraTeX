@@ -1,3 +1,5 @@
+import { GraTeXUtils } from './GraTeXUtils.js';
+
 class GraTeXApp {
     constructor() {
         this.calcElt = document.getElementById('calculator');
@@ -29,11 +31,13 @@ class GraTeXApp {
         this.initButtons();
         this.initElements();
         this.initEventListeners();
+
+        this.utils = new GraTeXUtils(this);
     }
 
     initButtons() {
         const btnElt = document.getElementById('screenshot-button');
-        btnElt.addEventListener('click', () => this.generate());
+        btnElt.addEventListener('click', () => this.utils.generate());
 
         const btnImp = document.getElementById('import-button');
         btnImp.addEventListener('click', () => this.importGraph(this.desmosHash.value));
@@ -42,7 +46,10 @@ class GraTeXApp {
     initElements() {
         this.containerElt = document.getElementById('generate-container');
         this.preview = document.getElementById('preview');
+        this.svgPreview = document.getElementById('svg-preview');
         this.downloadPNG = document.getElementById('downloadPNGButton');
+        this.downloadSVG = document.getElementById('downloadSVGButton');
+        this.mathjaxPreview = document.getElementById('mathjax-preview');
         this.labelFont = document.forms.labelFont.elements[0];
         this.labelSize = document.forms.labelSize.elements[0];
         this.imageDimension = document.forms.imageDimension.elements[0];
@@ -92,108 +99,6 @@ class GraTeXApp {
         });
     }
 
-    generate() {
-        const graphImg = new Image();
-        const mergeImg = new Image();
-        const fullCaptureImg = new Image();
-        const [width, height, graphSize, graphMargin, labelPos] = this.imageDimension.value.split(',').map(num => +num);
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = width;
-        canvas.height = height;
-
-        const is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
-        Promise.all([
-            new Promise(resolve => (graphImg.onload = resolve)),
-            new Promise(resolve => (mergeImg.onload = resolve)),
-            new Promise(resolve => (fullCaptureImg.onload = resolve))
-        ]).then(() => {
-            context.fillStyle = this.color.value;
-            context.fillRect(0, 0, width, height);
-
-            const invertGraph = is2D && this.calculator2D.graphSettings.invertedColors;
-            const invertLabel = ColorUtils.contrast(this.color.value) === 'white';
-            if (invertGraph) this.reverse(context);
-
-            const graphWidth = graphSize * (this.widegraph.checked + 1);
-            const graphLeft = (width - graphWidth) >> 1;
-
-            // graphOnlyの場合 グラフを中央に描きlatexを消す
-            context.drawImage(graphImg, graphLeft, 
-                this.graphOnly.checked ? (height - graphSize) >> 1 : graphMargin,
-                graphWidth, graphSize);
-
-            if (invertGraph !== invertLabel) this.reverse(context);
-            context.lineWidth = width / 1440;
-
-            if (this.frame.checked) context.strokeRect(graphLeft,
-                this.graphOnly.checked ? (height - graphSize) >> 1 : graphMargin,
-                graphWidth, graphSize);
-
-            // 透過で画像合成できるよう乗算
-            context.globalCompositeOperation = 'multiply';
-            if (!this.graphOnly.checked) context.drawImage(mergeImg, 0, 0, width, height);
-            context.font = labelPos / 24 + 'px serif';
-            context.fillStyle = 'black';
-            context.textAlign = 'right';
-            if (this.credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', width - 10, height - 10);
-            if (invertLabel) this.reverse(context);
-
-            let imgSrc = this.fullCapture.checked ? fullCaptureImg.src : canvas.toDataURL();
-            this.downloadPNG.href = this.preview.src = imgSrc;
-
-            this.preview.style.maxWidth = width + 'px';
-            this.containerElt.style.display = 'block';
-        });
-
-        const calculator = is2D ? this.calculator2D : this.calculator3D;
-        graphImg.src = calculator.screenshot({
-            width: 320 * (this.widegraph.checked + 1),
-            height: 320,
-            targetPixelRatio: graphSize / 320
-        });
-
-        const label = this.getLabel(calculator);
-        const ratio = (Math.min(width, height) >= 360) + 1;
-        this.calculatorLabelScreenshot.setExpression({
-            id: 'label',
-            latex: `\\left(0,-${labelPos / ratio}\\right)`,
-            color: 'black',
-            label: `\`${this.labelFont.value ? `\\${this.labelFont.value}{${label}}` : label}\``,
-            hidden: true,
-            showLabel: true,
-            secret: true,
-            labelSize: this.labelSize.value * labelPos + '/' + 720 * ratio
-        });
-        this.calculatorLabelScreenshot.asyncScreenshot(
-            {
-                showLabels: true,
-                width: width / ratio,
-                height: height / ratio,
-                targetPixelRatio: ratio,
-                mathBounds: {
-                    left: -width / ratio,
-                    right: width / ratio,
-                    bottom: -height,
-                    top: height
-                }
-            },
-            s => (mergeImg.src = s)
-        );
-
-        fullCaptureImg.src = calculator.screenshot({
-            width: width,
-            height: height
-        });
-    }
-
-    reverse(context) {
-        context.globalCompositeOperation = 'difference';
-        context.fillStyle = 'white';
-        context.fillRect(0, 0, 1920, 1080);
-        context.globalCompositeOperation = 'normal';
-    }
-
     getUrlQueries() {
         return Object.fromEntries(
             Array.from(new URLSearchParams(location.search), ([key, value]) => [key.toLowerCase(), value || true])
@@ -225,19 +130,28 @@ class GraTeXApp {
             });
     }
 
-    getLabel(calculator) {
+    getLabel(calculator, format = 'png', font = '') {
         switch (document.querySelector('input[name="label"]:checked').value) {
             case 'hide':
                 return '?????????';
             case 'top-expression':
                 const exp = calculator.getExpressions().find(exp => exp.latex);
-                return exp ? exp.latex : '?????????';
+                if (!exp) return '?????????';
+                if (format === 'png') return exp.latex;
+                else if (format === 'svg') return `${font ? `\\${font}{${exp.latex}}` : exp.latex}`;
             case 'custom':
-                const exps = this.calculatorLabel.getExpressions().map(exp => `\\class{multiline-item}{${exp.latex ?? ''}}`);
-                return exps.length ? `\\class{multiline-list}{${exps.join('')}}` : '?????????';
+                const exps = this.calculatorLabel.getExpressions().map(exp => exp.latex ?? '');
+                if (exps.length === 0) return '?????????';
+                if (format === 'png') {
+                    const labels = exps.map(e => `\\class{multiline-item}{${e ?? ''}}`);
+                    return `\\class{multiline-list}{${labels.join('')}}`;
+                } else if (format === 'svg') {
+                    const labels = exps.map(e => e.replace(/ /g, "\\ ").trim());
+                    const fontWrappedLabels = labels.map(line => font ? `\\${font}{${line}}` : line);
+                    return `\\begin{gather} ${fontWrappedLabels.join(" \\\\ ")} \\end{gather}`;
+                }
         }
     }
-
 }
 
 // アプリケーションの起動

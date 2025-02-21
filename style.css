@@ -67,6 +67,12 @@ a:focus {
   border-bottom-color: #333;
   margin-bottom: -1px;
 }
+a.disabled {
+  pointer-events: none;
+  background-color: gray;
+  border-color: gray;
+  cursor: default;
+}
 .navbar {
   margin-bottom: 24px;
   position: relative;
@@ -395,3 +401,5 @@ textarea {
   font-size: 14px;
   color: #6c757d;
 }
+
+ 
