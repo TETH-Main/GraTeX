@@ -1,82 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="Generate a graph and a LaTeX image using the Desmos Graphing Caluculator" />
-    <link rel="apple-touch-icon" sizes="180x180" href="https://teth-main.github.io/GraTeX/img/apple-touch-icon.png" />
-    <link rel="icon" sizes="32x32" href="https://teth-main.github.io/GraTeX/img/icon-32x32.png" />
-    <link rel="icon" sizes="16x16" href="https://teth-main.github.io/GraTeX/img/icon-16x16.png" />
-    <meta property="og:url" content="https://teth-main.github.io/GraTeX/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Graph + LaTeX Generator" />
-    <meta property="og:description" content="GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents." />
-    <meta property="og:site_name" content="GraTeX" />
-    <meta property="og:image" content="https://teth-main.github.io/GraTeX/img/card.png" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" type="text/css" href="./style.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="./script/getFontColor.js"></script>
-    <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag('js', new Date());
-      gtag('config', 'G-1JR9SZ33HJ');
-    </script>
-    <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-    <title>Graph + LaTeX Generator</title>
-  </head>
-  <body>
-    <nav class="navbar navbar-light bg-light">
-      <header>
-        <h3><a class="navbar-brand" href="https://teth-main.github.io/GraTeX/">Graph + LaTeX = GraTeX</a></h3>
-      </header>
-    </nav>
-    <div class="container">
-      <h3>GraTeX</h3>
-      <p>
-        GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents.
-        <br />
-        Type the formula into the Desmos Graphing Caluculator and click “Generate”.
-        <br />
-        <a href="https://github.com/TETH-Main/GraTeX" target="_blank">The source code is available on GitHub.</a>
-        <br />
-        Thanks to <a href="https://twitter.com/graphemecluster" target="_blank">graphemecluster</a>, I was able to create this site. Thank you very much.
-      </p>
-      <h4>Invite the Discord bot</h4>
-      <h4><a href="https://dsc.gg/gratex">https://dsc.gg/gratex</a></h4>
-      Thanks to <a href="https://twitter.com/Pixelated_Donut" target="_blank">ronwnor</a>, I was able to create discord bot. Thank you very much.
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <meta name="description" content="Generate a graph and a LaTeX image using the Desmos Graphing Caluculator" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://teth-main.github.io/GraTeX/img/apple-touch-icon.png" />
+  <link rel="icon" href="https://teth-main.github.io/GraTeX/img/apple-touch-icon.png" />
+  <link rel="icon" sizes="32x32" href="https://teth-main.github.io/GraTeX/img/icon-32x32.png" />
+  <link rel="icon" sizes="16x16" href="https://teth-main.github.io/GraTeX/img/icon-16x16.png" />
+  <meta property="og:url" content="https://teth-main.github.io/GraTeX/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Graph + LaTeX Generator" />
+  <meta property="og:description"
+    content="GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX images that you can save for use in other documents." />
+  <meta property="og:site_name" content="GraTeX" />
+  <meta property="og:image" content="https://teth-main.github.io/GraTeX/img/card.png" />
+  <meta name="thumbnail" content="https://teth-main.github.io/GraTeX/img/card.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="stylesheet" type="text/css" href="./style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- MathQuill Dependencies -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+  <script src="./script/getFontColor.js"></script>
+  <script type="text/javascript" async
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', 'G-1JR9SZ33HJ');
+  </script>
+  <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+
+  <title>Graph + LaTeX Generator</title>
+</head>
+
+<body>
+  <nav class="navbar navbar-light bg-light">
+    <header>
+      <h3><a class="navbar-brand" href="https://teth-main.github.io/GraTeX/">Graph + LaTeX = GraTeX</a></h3>
+    </header>
+  </nav>
+  <div class="container">
+    <h3>GraTeX</h3>
+    <p>
+      GraTeX allows you to turn the equations you enter into the Desmos Graphing Caluculator into graphs and LaTeX
+      images that you can save for use in other documents.
+      <br />
+      Type the formula into the Desmos Graphing Caluculator and click “Generate”.
+      <br />
+      <a href="https://github.com/TETH-Main/GraTeX" target="_blank">The source code is available on GitHub.</a>
+      <br />
+      Thanks to <a href="https://twitter.com/graphemecluster" target="_blank">graphemecluster</a>, I was able to create
+      this site. Thank you very much.
+    </p>
+    <h4>Invite the Discord bot</h4>
+    <h4><a href="https://dsc.gg/gratex">https://dsc.gg/gratex</a></h4>
+    Thanks to <a href="https://twitter.com/Pixelated_Donut" target="_blank">ronwnor</a>, I was able to create discord
+    bot. Thank you very much.
+  </div>
+  <div class="container">
+    <div class="version-switch">
+      <input type="radio" name="version" id="version-2d" value="version-2d" checked />
+      <label for="version-2d">2D</label>
+      <input type="radio" name="version" id="version-3d" value="version-3d" />
+      <label for="version-3d">3D</label>
     </div>
-    <div class="container">
-      <div class="version-switch">
-        <input type="radio" name="version" id="version-2d" value="version-2d" checked />
-        <label for="version-2d">2D</label>
-        <input type="radio" name="version" id="version-3d" value="version-3d" />
-        <label for="version-3d">3D</label>
-      </div>
-      <div id="calculator"></div>
-      <iframe id="calculator-3d" src="./3d.html"></iframe>
-      <div class="card" id="form-container">
-        <div class="card-body">
+    <div id="calculator"></div>
+    <iframe id="calculator-3d" src="./3d.html"></iframe>
+    <div class="card" id="form-container">
+      <div class="card-body">
+        <!-- タブ切り替えUI -->
+        <div class="tab-switch" style="display: flex; gap: 8px; margin-bottom: 1em;">
+          <button id="tab-layout" class="tab-btn active" type="button">Layout</button>
+          <button id="tab-movie" class="tab-btn" type="button">Movie</button>
+        </div>
+        <!-- Layoutタブ内容 -->
+        <div id="layout-panel">
           <div class="form-row">
             <div class="col stretch">
-              <textarea
-                class="form-control"
-                id="desmos-hash"
-                name="test"
-                cols="10"
-                rows="1"
-                placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…"
-                autocomplete="off"
-                autocorrect="off"
-                autocapitalize="off"
-                spellcheck="false"
-              ></textarea>
+              <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1"
+                placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…" autocomplete="off" autocorrect="off"
+                autocapitalize="off" spellcheck="false"></textarea>
             </div>
             <div class="col">
               <button class="btn btn-import" id="import-button" type="button">
@@ -143,13 +158,13 @@
             <button id="advanced-options" class="advanced-options-button" aria-expanded="false">
               Advanced Options
               <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
-                <path d="M2 8l4 -4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M2 8l4 -4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
               </svg>
             </button>
             <div id="advanced-menu" class="advanced-menu" style="display: none;">
               <div class="advanced-menu-section">
                 <label>
-                  <input type="checkbox" class="option-checkbox" id="frame" checked/>
+                  <input type="checkbox" class="option-checkbox" id="frame" checked />
                   <span class="option-button">
                     <i class="fas fa-plus-square"></i>
                     Add Frame
@@ -216,43 +231,91 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="container" id="generate-container">
-      <div class="card">
-        <div class="card-body">
-          <img id="preview" alt="Preview" />
-          <div id="svg-preview" alt="Preview" style="display: none;"></div>
-          <div id="mathjax-preview" alt="Preview" style="display: none;"></div>
-          <a class="btn btn-download" id="downloadSVGButton" role="button" download="GraTeX.svg">
-            <span>Save SVG</span>
-          </a>
-          <a class="btn btn-download" id="downloadPNGButton" role="button" download="GraTeX.png">
-            <span>Save PNG</span>
-          </a>
+        <!-- Movieタブ内容 -->
+        <div id="movie-panel" style="display: none;">
+          <div class="form-row">
+            <div class="col">
+              <label>
+                <input type="checkbox" id="add-variable-label" />
+                Add Variable Label
+              </label>
+            </div>
+          </div>          <div class="form-row" style="align-items: center;">
+            <div class="col stretch">
+              <div class="form-group">
+                <div id="movie-start" class="form-control mathquill-input"></div>
+              </div>
+            </div>
+            <div style="align-self: center; padding: 0 8px;">
+              <span class="movie-leq">&leq;</span>
+            </div>
+            <div class="col stretch">
+              <div class="form-group">
+                <select id="movie-var" class="form-control">
+                  <!-- JSで変数リストを追加する想定 -->
+                </select>
+              </div>
+            </div>
+            <div style="align-self: center; padding: 0 8px;">
+              <span class="movie-leq">&leq;</span>
+            </div>
+            <div class="col stretch">
+              <div class="form-group">
+                <div id="movie-end" class="form-control mathquill-input"></div>
+              </div>
+            </div>
+            <div style="align-self: center; padding: 0 8px;">Step:</div>
+            <div class="col stretch">
+              <div class="form-group">
+                <div id="movie-step" class="form-control mathquill-input"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="col stretch">
+              <div class="form-group">
+                <label for="movie-framerate">Frame Rate (fps)</label>
+                <input type="number" id="movie-framerate" class="form-control" placeholder="e.g. 30" min="1" max="60" value="30" />
+              </div>
+            </div>
+            <div class="col" style="max-width: 220px;">
+              <button class="btn btn-primary" id="generate-movie-button" type="button" style="width: 100%;">
+                <span>Generate Movie</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <nav class="navbar navbar-light bg-light footer">
-      <footer>
-        <h3 class="navbar-brand">By <a href="https://twitter.com/TETH_Main">TETH_Main</a> | <a href="https://github.com/TETH-Main/GraTeX/">Source Code</a></h3>
-      </footer>
-    </nav>
-    <script type="module" src="./script/gratex.js"></script>
-    <script>
-      // Add this to your existing JavaScript
-      document.addEventListener('DOMContentLoaded', function() {
-        const advancedButton = document.getElementById('advanced-options');
-        const advancedMenu = document.getElementById('advanced-menu');
-      
-        // Toggle dropdown
-        advancedButton.addEventListener('click', function() {
-          const isExpanded = advancedButton.getAttribute('aria-expanded') === 'true';
-          advancedButton.setAttribute('aria-expanded', !isExpanded);
-          advancedMenu.style.display = isExpanded ? 'none' : 'block';
-        });
+  </div>
+  <div class="container" id="generate-container">
+    <div class="card">
+      <div class="card-body">
+        <img id="preview" alt="Preview" />
+        <div id="svg-preview" alt="Preview" style="display: none;"></div>
+        <div id="mathjax-preview" alt="Preview" style="display: none;"></div>
+        <a class="btn btn-download" id="downloadSVGButton" role="button" download="GraTeX.svg">
+          <span>Save SVG</span>
+        </a>
+        <a class="btn btn-download" id="downloadPNGButton" role="button" download="GraTeX.png">
+          <span>Save PNG</span>
+        </a>
+        <a class="btn btn-download" id="downloadGIFButton" role="button" download="GraTeX.gif" style="display: none;">
+          <span>Save GIF</span>
+        </a>
+        <a class="btn btn-download" id="downloadMP4Button" role="button" download="GraTeX.mp4" style="display: none;">
+          <span>Save MP4</span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <nav class="navbar navbar-light bg-light footer">
+    <footer>
+      <h3 class="navbar-brand">By <a href="https://twitter.com/TETH_Main">TETH_Main</a> | <a
+          href="https://github.com/TETH-Main/GraTeX/">Source Code</a></h3>
+    </footer>
+  </nav>
+  <script type="module" src="./script/GraTeXApp.js"></script>
+</body>
 
-      });
-    </script>
-  </body>
 </html>

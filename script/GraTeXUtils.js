@@ -213,7 +213,8 @@ export class GraTeXUtils {
                 width: this.width,
                 height: this.height
             });
-        }).then(s => { // fullCaptureSvg
+        }).then(s => {
+            // fullCaptureSvg
             // const fullCaptureSvg = this.stringToDOM(s);
             // this.app.svgPreview.appendChild(fullCaptureSvg);
 

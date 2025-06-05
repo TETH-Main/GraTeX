@@ -1,4 +1,6 @@
 import { GraTeXUtils } from './GraTeXUtils.js';
+import { MovieGenerator } from './MovieGenerator.js';
+import { GraTeXUI } from './GraTeXUI.js';
 
 class GraTeXApp {
     constructor() {
@@ -18,7 +20,7 @@ class GraTeXApp {
             images: false,
             folders: false,
             notes: false,
-            sliders: false,
+            // sliders: false,
             actions: false,
             branding: false
         });
@@ -28,16 +30,28 @@ class GraTeXApp {
             showYAxis: false
         });
 
+        this.addVariableLabelEnabled = false;
+        this.originalLabelMode = null;
+        this.topExpressionLatex = null;
+
         this.initButtons();
         this.initElements();
         this.initEventListeners();
 
         this.utils = new GraTeXUtils(this);
+        this.movie = new MovieGenerator();
+        
+        this.ui = new GraTeXUI(this);
+        
+        this.initMovieGenerator();
     }
 
     initButtons() {
         const btnElt = document.getElementById('screenshot-button');
-        btnElt.addEventListener('click', () => this.utils.generate());
+        btnElt.addEventListener('click', () => {
+            this.movie.stopMovieAnimation();
+            this.utils.generate();
+        });
 
         const btnImp = document.getElementById('import-button');
         btnImp.addEventListener('click', () => this.importGraph(this.desmosHash.value));
@@ -90,6 +104,7 @@ class GraTeXApp {
 
         this.calc3DElt.onload = () => {
             this.calculator3D = this.calc3DElt.contentWindow.Calc;
+            console.log(this.calc3DElt.contentWindow.Calc);
         };
 
         document.querySelectorAll('input[name="label"]').forEach(element => {
@@ -130,6 +145,15 @@ class GraTeXApp {
             });
     }
 
+    async initMovieGenerator() {
+        try {
+            await this.movie.init(this);
+            console.log('GraTeX: MovieGenerator initialized successfully');
+        } catch (error) {
+            console.warn('GraTeX: MovieGenerator initialization failed:', error);
+        }
+    }
+
     getLabel(calculator, format = 'png', font = '') {
         switch (document.querySelector('input[name="label"]:checked').value) {
             case 'hide':
@@ -152,7 +176,120 @@ class GraTeXApp {
                 }
         }
     }
+
+    // labelラジオボタンを指定のvalueにセットするメソッド
+    setLabelRadioValue(value) {
+        const radio = document.querySelector(`input[name="label"][value="${value}"]`);
+        if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change'));
+        }
+    }
+
+    // 現在選択されているlabel値を返すメソッド
+    getCurrentLabelValue() {
+        const labelRadios = document.querySelectorAll('input[name="label"]');
+        for (const radio of labelRadios) {
+            if (radio.checked) {
+                return radio.value;
+            }
+        }
+        return null;
+    }
+
+    // 現在表示しているグラフ計算機が2Dかどうかを返す
+    is2DCalculatorActive() {
+        const checked = document.querySelector('input[name="version"]:checked');
+        return checked ? checked.value === 'version-2d' : true;
+    }
+
+    // 現在表示しているグラフ計算機(Desmosインスタンス)を返す
+    getActiveCalculator() {
+        return this.is2DCalculatorActive() ? this.calculator2D : this.calculator3D;
+    }
+
+    /**
+     * this.calculatorの変数を更新する
+     * @param {string} id - 更新する変数のid
+     * @param {float} value - 更新する値
+     */
+    updateVariableInCalculator(id, value) {
+        const calculator = this.getActiveCalculator();
+        if (calculator) {
+            calculator.controller.dispatch({
+                type: 'adjust-slider-by-dragging-thumb',
+                id: id,
+                target: value,
+            });
+        }
+    }
+
+    /**
+     * this.calculatorLabelに変数がセットされているかどうかを返す
+     * @param {string} variable - チェックする変数名
+     * @returns {boolean} - 変数がセットされている場合はtrue、そうでない場合はfalse
+     */
+    hasVariableInLabel(variable) {
+        const variables = this.calculatorLabel.controller.listModel.__itemModelArray
+                    .filter(e => e.sliderExists)
+                    .map(e => e.formula.assignment)
+        return variables.includes(variable);
+    }
+
+    /**
+     * this.calculatorLabelに変数をセットする
+     * @param {string} variable - セットする変数名
+     * @param {string} value - セットする値
+     */
+    setVariableInLabel(variable, value) {
+        if (!this.hasVariableInLabel(variable)) {
+            this.calculatorLabel.setExpression({
+                id: 'grapen-variable',
+                latex: `${variable}=${value}`
+            });
+        }
+    }
+
+    /**
+     * this.calculatorLabelの変数のidを取得する
+     * @param {string} variable - 取得する変数名
+     * @returns {string|null} - 変数のidが存在する場合はそのid、存在しない場合はnull
+     */
+    getVariableIdInLabel(variable) {
+        const variableItem = this.calculatorLabel.controller.listModel.__itemModelArray
+            .find(e => e.sliderExists && e.formula.assignment === variable);
+        return variableItem ? variableItem.id : null;
+    }
+
+    /**
+     * this.calculatorLabelの変数を更新する
+     * @param {string} id - 更新する変数のid
+     * @param {float} value - 更新する値
+     */
+    updateVariableInLabel(id = null, value) {
+        this.calculatorLabel.controller.dispatch({
+            type: 'adjust-slider-by-dragging-thumb',
+            id: id || 'grapen-variable',
+            target: value,
+        });
+    }
+
+    /**
+     * LaTeX数式を評価して数値を返す（無効ならnull）
+     * @param {string} latex
+     * @param {boolean} degreeMode
+     * @returns {number|null}
+     */
+    evaluateLatex(latex, degreeMode = false) {
+        if (!latex || typeof window.Desmos?.Private?.Fragile?.evaluateLatex !== 'function') return null;
+        try {
+            const v = window.Desmos.Private.Fragile.evaluateLatex(latex, degreeMode);
+            return (typeof v === 'number' && !isNaN(v)) ? v : null;
+        } catch {
+            return null;
+        }
+    }
 }
 
 // アプリケーションの起動
-new GraTeXApp();
+window.GraTeX = new GraTeXApp();
