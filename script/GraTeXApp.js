@@ -104,7 +104,6 @@ class GraTeXApp {
 
         this.calc3DElt.onload = () => {
             this.calculator3D = this.calc3DElt.contentWindow.Calc;
-            console.log(this.calc3DElt.contentWindow.Calc);
         };
 
         document.querySelectorAll('input[name="label"]').forEach(element => {

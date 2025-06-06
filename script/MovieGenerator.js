@@ -6,14 +6,14 @@
 import { GifGenerator } from './GifGenerator.js';
 import { Mp4Generator } from './Mp4Generator.js';
 
-export class MovieGenerator {    constructor() {
+export class MovieGenerator {
+    constructor() {
         this.animationVariables = {};
         this.updateInterval = null;
         this.changeEventHandler = null;
         this.graTexApp = null;
         this.gifGenerator = null;
         this.mp4Generator = null;
-        this.ffmpeg = null;
         this.frameImages = [];
         this.currentImageDimensions = null;
         this.isMoviePlaybackActive = false;
@@ -25,18 +25,10 @@ export class MovieGenerator {    constructor() {
      */
     async init(graTexApp) {
         this.graTexApp = graTexApp;
-        // ffmpegインスタンス生成
-        if (window.FFmpeg) {
-            this.ffmpeg = window.FFmpeg.createFFmpeg({ log: true });
-        } else if (window.createFFmpeg) {
-            this.ffmpeg = window.createFFmpeg({ log: true });
-        } else {
-            throw new Error('FFmpeg.wasmがwindow.FFmpegまたはwindow.createFFmpegとしてロードされていません。');
-        }
-        await this.ffmpeg.load();
-        // 各Generatorにffmpegを渡す
-        this.gifGenerator = new GifGenerator(this.ffmpeg);
-        this.mp4Generator = new Mp4Generator(this.ffmpeg);
+        
+        // FFmpegを使わない独立したGifGeneratorとMp4Generatorを初期化
+        this.gifGenerator = new GifGenerator();
+        this.mp4Generator = new Mp4Generator();
 
         // GifGeneratorの初期化を待つ
         try {
@@ -831,9 +823,7 @@ export class MovieGenerator {    constructor() {
                     if (progressPercentage) {
                         progressPercentage.textContent = `${percentage}%`;
                     }
-                });
-
-                // MP4生成設定
+                });                // MP4生成設定
                 const delay = Math.round(1000 / framerate); // フレームレートからdelayを計算
                 const mp4Options = {
                     delay: delay
@@ -844,7 +834,7 @@ export class MovieGenerator {    constructor() {
                 const mp4Blob = await this.mp4Generator.generateFromImages(this.frameImages, mp4Options);
 
                 // ダウンロード
-                this.mp4Generator.download(mp4Blob, 'GraTeX_animation.mp4');
+                this.mp4Generator.download(mp4Blob, 'GraTeX_animation');
 
                 // 成功時の表示
                 const progressDisplay = document.getElementById('progress-display-container');

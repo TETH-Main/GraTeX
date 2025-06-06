@@ -4,87 +4,147 @@
  */
 
 export class GifGenerator {
-    constructor(ffmpegInstance = null) {
-        this.ffmpeg = ffmpegInstance; // MovieGenerator.jsから渡す
-        this.ready = false;
-        this.progressCallback = null;
-        this.initPromise = this.init();
+    constructor() {
+        this.gif = null;
+        this.isGenerating = false;
+        this.onProgress = null;
+        this.onComplete = null;
+        this.onError = null;
+        this.isLibraryReady = false;
+        this.initPromise = null;
+        
+        // gif.jsライブラリの読み込み確認（非同期）
+        this.initPromise = this.initLibrary();
     }
-
-    async init() {
-        if (this.ffmpeg) {
-            this.ready = true;
-            return;
+    
+    /**
+     * gif.jsライブラリの初期化
+     */
+    async initLibrary() {
+        try {
+            await this.ensureGifLibrary();
+            this.isLibraryReady = true;
+            console.log('GifGenerator: gif.js library is ready');
+        } catch (error) {
+            console.error('GifGenerator initialization failed:', error);
+            throw error;
         }
-        // MovieGenerator.jsからffmpegをセットしない場合はwindow.FFmpeg等を使う
-        if (typeof SharedArrayBuffer === 'undefined') {
-            alert('GIF生成にはSharedArrayBuffer対応が必要です。');
-            throw new Error('SharedArrayBuffer is not defined. GIF生成不可。');
-        }
-        if (window.FFmpeg) {
-            this.ffmpeg = window.FFmpeg.createFFmpeg({ log: true, progress: p => this.progressCallback?.(p.ratio || 0) });
-        } else if (window.createFFmpeg) {
-            this.ffmpeg = window.createFFmpeg({ log: true, progress: p => this.progressCallback?.(p.ratio || 0) });
-        } else {
-            throw new Error('FFmpeg.wasmがwindow.FFmpegまたはwindow.createFFmpegとしてロードされていません。');
-        }
-        await this.ffmpeg.load();
-        this.ready = true;
     }
-
-    async waitForReady() {
-        await this.initPromise;
-    }
-
+    
+    /**
+     * GifGeneratorが使用可能かチェック
+     * @returns {boolean}
+     */
     isReady() {
-        return this.ready;
+        return this.isLibraryReady;
     }
-
-    setProgressCallback(cb) {
-        this.progressCallback = cb;
+    
+    /**
+     * 初期化を待つ
+     * @returns {Promise<void>}
+     */
+    async waitForReady() {
+        if (this.initPromise) {
+            await this.initPromise;
+        }
+        return this.isLibraryReady;
     }
 
     /**
-     * base64画像配列→GIF Blob
-     * @param {Array<string>} base64Array - base64エンコードされた画像データの配列
-     * @param {Object} options - 生成オプション
+     * gif.jsライブラリが利用可能かチェック
+     */
+    ensureGifLibrary() {
+        return new Promise((resolve, reject) => {
+            if (typeof GIF !== 'undefined' || typeof window.GIF !== 'undefined') {
+                resolve();
+                return;
+            }
+            let attempts = 0;
+            const maxAttempts = 50;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (typeof GIF !== 'undefined' || typeof window.GIF !== 'undefined') {
+                    clearInterval(checkInterval);
+                    resolve();
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkInterval);
+                    reject(new Error('gif.jsライブラリが読み込まれていません。'));
+                }
+            }, 100);
+        });
+    }
+
+    /**
+     * GIF生成を初期化
+     * @param {Object} options - GIF生成オプション
+     * @param {number} options.width - 幅
+     * @param {number} options.height - 高さ
      * @param {number} options.delay - フレーム間隔（ミリ秒）
-     * @returns {Promise<Blob>} 生成されたGIFのBlob
+     * @param {number} options.quality - 品質（1-20、低いほど高品質）
+     * @param {boolean} options.repeat - ループ再生
+     * @param {number} options.workers - ワーカー数
      */
-    async generateFromImages(base64Array, options = {}) {
-        await this.waitForReady();
-        const ffmpeg = this.ffmpeg;
-        // 画像を仮想FSに書き込む
-        for (let i = 0; i < base64Array.length; ++i) {
-            const b64 = base64Array[i].replace(/^data:image\/(png|jpeg);base64,/, '');
-            const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-            const filename = `frame_${String(i).padStart(4, '0')}.png`;
-            ffmpeg.FS('writeFile', filename, buf);
+    initialize(options = {}) {
+        if (!this.isLibraryReady) {
+            throw new Error('gif.js library is not ready yet. Please wait for initialization.');
         }
-        // FFmpegコマンドでGIF生成
-        const framerate = options.framerate || (options.delay ? Math.round(1000 / options.delay) : 10);
-        const outName = 'out.gif';
-        await ffmpeg.run(
-            '-framerate', String(framerate),
-            '-i', 'frame_%04d.png',
-            '-vf', 'split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse',
-            '-y', outName
-        );
-        const data = ffmpeg.FS('readFile', outName);
-        // 仮想FSをクリーンアップ
-        for (let i = 0; i < base64Array.length; ++i) {
-            const filename = `frame_${String(i).padStart(4, '0')}.png`;
-            try { ffmpeg.FS('unlink', filename); } catch {}
-        }
-        try { ffmpeg.FS('unlink', outName); } catch {}
-        return new Blob([data.buffer], { type: 'image/gif' });
-    }
+        const defaultOptions = {
+            width: 640,
+            height: 480,
+            delay: 100, // 100ms = 10fps
+            quality: 10,
+            repeat: 0, // 無限ループ
+            workers: 2,
+            workerScript: './script/gif.worker.js'
+        };
+        const config = { ...defaultOptions, ...options };
+        this.gif = new GIF({
+            workers: config.workers,
+            quality: config.quality,
+            width: config.width,
+            height: config.height,
+            repeat: config.repeat,
+            workerScript: config.workerScript
+        });
+        this.delay = config.delay;
+        this.setupEventListeners();
+    }    /**
+     * イベントリスナーを設定
+     */
+    setupEventListeners() {
+        if (!this.gif) return;
 
-    /**
-     * generateFromBase64Array: generateFromImagesのエイリアス（後方互換）
-     */
-    async generateFromBase64Array(base64Images, options = {}) {
-        return this.generateFromImages(base64Images, options);
+        this.gif.on('start', () => {
+            console.log('GIF生成開始');
+        });
+
+        this.gif.on('progress', (progress) => {
+            console.log(`GIF生成進捗: ${Math.round(progress * 100)}%`);
+            if (this.onProgress) {
+                this.onProgress(progress);
+            }
+        });
+
+        this.gif.on('finished', (blob) => {
+            console.log('GIF生成が完了しました');
+            this.isGenerating = false;
+            if (this.onComplete) {
+                this.onComplete(blob);
+            }
+        });
+
+        this.gif.on('error', (error) => {
+            console.error('GIF生成エラー:', error);
+            this.isGenerating = false;
+            if (this.onError) {
+                this.onError(error);
+            }
+        });
+
+        this.gif.on('abort', () => {
+            console.log('GIF生成が中断されました');
+            this.isGenerating = false;
+        });
     }
 
     /**
@@ -113,42 +173,57 @@ export class GifGenerator {
         const ctx = canvas.getContext('2d');
         canvas.width = width;
         canvas.height = height;
+
+        // 画像をキャンバスに描画（リサイズ対応）
         ctx.drawImage(image, 0, 0, width, height);
+        
         return ctx.getImageData(0, 0, width, height);
     }
 
     /**
-     * GIF品質を調整（フレーム数に応じて自動調整）
-     * @param {number} frameCount - フレーム数
-     * @returns {number} 推奨品質値
+     * base64画像配列からGIFを生成
+     * @param {string[]} base64Images - base64形式の画像配列
+     * @param {Object} options - 生成オプション
+     * @returns {Promise<Blob>}
      */
-    getOptimalQuality(frameCount) {
-        if (frameCount <= 10) return 5;
-        if (frameCount <= 30) return 10;
-        if (frameCount <= 60) return 15;
-        return 20;
-    }
-
-    /**
-     * 現在の生成状態を取得
-     * @returns {boolean}
-     */
-    getGeneratingStatus() {
-        return this.isGenerating;
-    }
-
-    /**
-     * リソースをクリーンアップ
-     */
-    dispose() {
-        if (this.gif) {
-            this.gif.abort();
-            this.gif = null;
+    async generateFromBase64Array(base64Images, options = {}) {
+        if (this.isGenerating) {
+            throw new Error('GIF生成中です');
         }
-        this.isGenerating = false;
-        this.onProgress = null;
-        this.onComplete = null;
-        this.onError = null;
+        if (!base64Images || base64Images.length === 0) {
+            throw new Error('画像が指定されていません');
+        }
+        this.isGenerating = true;
+        try {
+            if (!this.isLibraryReady) {
+                await this.initPromise;
+            }
+            const firstImage = await this.base64ToImage(base64Images[0]);
+            const width = options.width || firstImage.width;
+            const height = options.height || firstImage.height;
+            const quality = options.quality || this.getOptimalQuality(base64Images.length);
+            this.initialize({
+                width,
+                height,
+                delay: options.delay || 100,
+                quality,
+                repeat: options.repeat !== undefined ? options.repeat : 0,
+                workers: options.workers || 2
+            });
+            for (let i = 0; i < base64Images.length; i++) {
+                const image = await this.base64ToImage(base64Images[i]);
+                const imageData = this.imageToImageData(image, width, height);
+                this.gif.addFrame(imageData, { delay: this.delay, copy: true });
+            }
+            return new Promise((resolve, reject) => {
+                this.onComplete = resolve;
+                this.onError = reject;
+                this.gif.render();
+            });
+        } catch (error) {
+            this.isGenerating = false;
+            throw error;
+        }
     }
 
     /**
@@ -177,6 +252,16 @@ export class GifGenerator {
     }
 
     /**
+     * 生成をキャンセル
+     */
+    cancel() {
+        if (this.gif && this.isGenerating) {
+            this.gif.abort();
+            this.isGenerating = false;
+        }
+    }
+
+    /**
      * 進捗コールバックを設定
      * @param {Function} callback - 進捗コールバック (0-1の値)
      */
@@ -201,11 +286,45 @@ export class GifGenerator {
     }
 
     /**
+     * 現在の生成状態を取得
+     * @returns {boolean}
+     */
+    getGeneratingStatus() {
+        return this.isGenerating;
+    }
+
+    /**
+     * GIF品質を調整（フレーム数に応じて自動調整）
+     * @param {number} frameCount - フレーム数
+     * @returns {number} 推奨品質値
+     */
+    getOptimalQuality(frameCount) {
+        if (frameCount <= 10) return 5;  // 高品質
+        if (frameCount <= 30) return 10; // 標準品質
+        if (frameCount <= 60) return 15; // 低品質
+        return 20; // 最低品質（大量フレーム用）
+    }
+
+    /**
      * フレームレートからdelayを計算
      * @param {number} fps - フレームレート
      * @returns {number} ミリ秒単位のdelay
      */
     static fpsToDelay(fps) {
         return Math.round(1000 / Math.max(1, Math.min(60, fps)));
+    }
+
+    /**
+     * リソースをクリーンアップ
+     */
+    dispose() {
+        if (this.gif) {
+            this.gif.abort();
+            this.gif = null;
+        }
+        this.isGenerating = false;
+        this.onProgress = null;
+        this.onComplete = null;
+        this.onError = null;
     }
 }
