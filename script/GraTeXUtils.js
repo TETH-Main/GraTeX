@@ -17,112 +17,13 @@ export class GraTeXUtils {
         this.generateSVG();
     }
 
-    generatePNG() {
-        const graphImg = new Image();
-        const mergeImg = new Image();
-        const fullCaptureImg = new Image();
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = this.width;
-        canvas.height = this.height;
-
-        const is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
-        Promise.all([
-            new Promise(resolve => (graphImg.onload = resolve)),
-            new Promise(resolve => (mergeImg.onload = resolve)),
-            new Promise(resolve => (fullCaptureImg.onload = resolve))
-        ]).then(() => {
-            // 背景色設定
-            context.fillStyle = this.fillColor;
-            context.fillRect(0, 0, this.width, this.height);
-
-            // 濃薄色判定
-            const invertGraph = is2D && this.app.calculator2D.graphSettings.invertedColors;
-            const invertLabel = ColorUtils.contrast(this.app.color.value) === 'white';
-            if (invertGraph) this.reverse(context);
-
-            // グラフ描画位置設定
-            const graphWidth = this.graphSize * (this.app.widegraph.checked + 1);
-            const graphLeft = (this.width - graphWidth) >> 1;
-
-            // グラフ描画
-            // graphOnlyの場合 グラフを中央に描きlatexを消す
-            context.drawImage(graphImg, graphLeft, 
-                this.app.graphOnly.checked ? (this.height - this.graphSize) >> 1 : this.graphMargin,
-                graphWidth, this.graphSize);
-
-            // 濃色であれば色反転
-            if (invertGraph !== invertLabel) this.reverse(context);
-            context.lineWidth = this.width / 1440;
-
-            // 枠描画
-            if (this.app.frame.checked) context.strokeRect(graphLeft,
-                this.app.graphOnly.checked ? (this.height - this.graphSize) >> 1 : this.graphMargin,
-                graphWidth, this.graphSize);
-
-            // 透過で画像合成できるよう乗算
-            context.globalCompositeOperation = 'multiply';
-            // LaTeX入りの背景を描画
-            if (!this.app.graphOnly.checked) context.drawImage(mergeImg, 0, 0, this.width, this.height);
-
-            // credit描画
-            context.font = this.labelPos / 24 + 'px serif';
-            context.fillStyle = 'black';
-            context.textAlign = 'right';
-            if (this.app.credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', this.width - 10, this.height - 10);
-
-            // 濃色であれば色反転
-            if (invertLabel) this.reverse(context);
-
-            // srcセット
-            let imgSrc = this.app.fullCapture.checked ? fullCaptureImg.src : canvas.toDataURL();
-            this.app.downloadPNG.href = this.app.preview.src = imgSrc;
-
-            this.app.preview.style.maxWidth = this.width + 'px';
-            this.app.containerElt.style.display = 'block';
-        });
-
-        const calculator = is2D ? this.app.calculator2D : this.app.calculator3D;
-        graphImg.src = calculator.screenshot({
-            width: 320 * (this.app.widegraph.checked + 1),
-            height: 320,
-            targetPixelRatio: this.graphSize / 320
-        });
-
-        const label = this.app.getLabel(calculator);
-        const ratio = (Math.min(this.width, this.height) >= 360) + 1;
-        this.app.calculatorLabelScreenshot.setExpression({
-            id: 'label',
-            latex: `\\left(0,-${this.labelPos / ratio}\\right)`,
-            color: 'black',
-            label: `\`${this.app.labelFont.value ? `\\${this.app.labelFont.value}{${label}}` : label}\``,
-            hidden: true,
-            showLabel: true,
-            secret: true,
-            labelSize: this.app.labelSize.value * this.labelPos + '/' + 720 * ratio
-        });
-        this.app.calculatorLabelScreenshot.asyncScreenshot(
-            {
-                showLabels: true,
-                width: this.width / ratio,
-                height: this.height / ratio,
-                targetPixelRatio: ratio,
-                mathBounds: {
-                    left: -this.width / ratio,
-                    right: this.width / ratio,
-                    bottom: -this.height,
-                    top: this.height
-                }
-            },
-            s => (mergeImg.src = s)
-        );
-
-        fullCaptureImg.src = calculator.screenshot({
-            width: this.width,
-            height: this.height
-        });
+    async generatePNG() {
+        const imgSrc = await this.getGraTeXPNGSrc();
+        this.app.downloadPNG.href = this.app.preview.src = imgSrc;
+        this.app.preview.style.maxWidth = this.width + 'px';
+        this.app.containerElt.style.display = 'block';
     }
-
+    
     reverse(context) {
         context.globalCompositeOperation = 'difference';
         context.fillStyle = 'white';
@@ -259,5 +160,105 @@ export class GraTeXUtils {
     domToString(dom) {
         const serializer = new XMLSerializer();
         return serializer.serializeToString(dom);
+    }
+
+    /**
+     * GraTeXスタイルのPNGスクリーンショット base64 srcだけをPromiseで返す
+     * @returns {Promise<string>} data:image/png;base64,... 形式の画像src
+     **/
+    async getGraTeXPNGSrc() {
+        [this.width, this.height, this.graphSize, this.graphMargin, this.labelPos] = this.app.imageDimension.value.split(',').map(num => +num);
+        this.fillColor = this.app.color.value;
+
+        const graphImg = new Image();
+        const mergeImg = new Image();
+        const fullCaptureImg = new Image();
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = this.width;
+        canvas.height = this.height;
+
+        const is2D = document.querySelector('input[name="version"]:checked').value === 'version-2d';
+        const calculator = is2D ? this.app.calculator2D : this.app.calculator3D;
+
+        // graph, label, fullCaptureの画像srcをセット
+        graphImg.src = calculator.screenshot({
+            width: 320 * (this.app.widegraph.checked + 1),
+            height: 320,
+            targetPixelRatio: this.graphSize / 320
+        });
+
+        const label = this.app.getLabel(calculator);
+        const ratio = (Math.min(this.width, this.height) >= 360) + 1;
+        this.app.calculatorLabelScreenshot.setExpression({
+            id: 'label',
+            latex: `\\left(0,-${this.labelPos / ratio}\\right)`,
+            color: 'black',
+            label: `\`${this.app.labelFont.value ? `\\${this.app.labelFont.value}{${label}}` : label}\``,
+            hidden: true,
+            showLabel: true,
+            secret: true,
+            labelSize: this.app.labelSize.value * this.labelPos + '/' + 720 * ratio
+        });
+
+        this.app.calculatorLabelScreenshot.asyncScreenshot(
+            {
+                showLabels: true,
+                width: this.width / ratio,
+                height: this.height / ratio,
+                targetPixelRatio: ratio,
+                mathBounds: {
+                    left: -this.width / ratio,
+                    right: this.width / ratio,
+                    bottom: -this.height,
+                    top: this.height
+                }
+            },
+            s => (mergeImg.src = s)
+        );
+
+        fullCaptureImg.src = calculator.screenshot({
+            width: this.width,
+            height: this.height
+        });
+
+        // 画像ロード待ち
+        await Promise.all([
+            new Promise(resolve => (graphImg.onload = resolve)),
+            new Promise(resolve => (mergeImg.onload = resolve)),
+            new Promise(resolve => (fullCaptureImg.onload = resolve))
+        ]);
+
+        context.fillStyle = this.fillColor;
+        context.fillRect(0, 0, this.width, this.height);
+
+        const invertGraph = is2D && this.app.calculator2D.graphSettings.invertedColors;
+        const invertLabel = ColorUtils.contrast(this.app.color.value) === 'white';
+        if (invertGraph) this.reverse(context);
+
+        const graphWidth = this.graphSize * (this.app.widegraph.checked + 1);
+        const graphLeft = (this.width - graphWidth) >> 1;
+        context.drawImage(graphImg, graphLeft, 
+            this.app.graphOnly.checked ? (this.height - this.graphSize) >> 1 : this.graphMargin,
+            graphWidth, this.graphSize);
+
+        if (invertGraph !== invertLabel) this.reverse(context);
+        context.lineWidth = this.width / 1440;
+        if (this.app.frame.checked) context.strokeRect(graphLeft,
+            this.app.graphOnly.checked ? (this.height - this.graphSize) >> 1 : this.graphMargin,
+            graphWidth, this.graphSize);
+
+        context.globalCompositeOperation = 'multiply';
+        if (!this.app.graphOnly.checked) context.drawImage(mergeImg, 0, 0, this.width, this.height);
+
+        context.font = this.labelPos / 24 + 'px serif';
+        context.fillStyle = 'black';
+        context.textAlign = 'right';
+        if (this.app.credit.checked) context.fillText('Graph + LaTeX = GraTeX by @TETH_Main', this.width - 10, this.height - 10);
+
+        if (invertLabel) this.reverse(context);
+
+        let imgSrc = this.app.fullCapture.checked ? fullCaptureImg.src : canvas.toDataURL();
+        return imgSrc;
     }
 }

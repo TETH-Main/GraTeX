@@ -22,13 +22,22 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="./script/getFontColor.js"></script>
+  <script src="https://www.desmos.com/api/v1.12/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+
   <!-- MathQuill Dependencies -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
-  <script src="./script/getFontColor.js"></script>
   <script type="text/javascript" async
     src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+
+  <!-- GIF生成ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <!-- MP4生成ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js"></script>
+
+  <title>Graph + LaTeX Generator</title>
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
   <script>
@@ -39,13 +48,6 @@
     gtag('js', new Date());
     gtag('config', 'G-1JR9SZ33HJ');
   </script>
-  <script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-  <!-- GIF生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-  <!-- MP4生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js"></script>
-
-  <title>Graph + LaTeX Generator</title>
 </head>
 
 <body>
@@ -243,25 +245,21 @@
                 Add Variable Label
               </label>
             </div>
-          </div>          <div class="form-row" style="align-items: center;">
+          </div>
+            <div class="form-row" style="align-items: center;">
             <div class="col stretch">
               <div class="form-group">
                 <div id="movie-start" class="form-control mathquill-input"></div>
               </div>
             </div>
-            <div style="align-self: center; padding: 0 8px;">
-              <span class="movie-leq">&leq;</span>
-            </div>
+            <div class="movie-leq">&leq;</div>
             <div class="col stretch">
               <div class="form-group">
                 <select id="movie-var" class="form-control">
-                  <!-- JSで変数リストを追加する想定 -->
                 </select>
               </div>
             </div>
-            <div style="align-self: center; padding: 0 8px;">
-              <span class="movie-leq">&leq;</span>
-            </div>
+            <div class="movie-leq">&leq;</div>
             <div class="col stretch">
               <div class="form-group">
                 <div id="movie-end" class="form-control mathquill-input"></div>

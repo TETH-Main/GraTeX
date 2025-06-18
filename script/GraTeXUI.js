@@ -93,7 +93,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt sum',
+            autoCommands: 'pi theta sqrt',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieEndField = this.MQ.MathField(document.getElementById('movie-end'), {
@@ -104,7 +104,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt sum',
+            autoCommands: 'pi theta sqrt',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieStepField = this.MQ.MathField(document.getElementById('movie-step'), {
@@ -115,7 +115,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt sum',
+            autoCommands: 'pi theta sqrt',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieStepField.latex('1');

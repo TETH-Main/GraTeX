@@ -40,9 +40,9 @@ class GraTeXApp {
 
         this.utils = new GraTeXUtils(this);
         this.movie = new MovieGenerator();
-        
+
         this.ui = new GraTeXUI(this);
-        
+
         this.initMovieGenerator();
     }
 
@@ -208,19 +208,51 @@ class GraTeXApp {
     }
 
     /**
+     * アンダースコア記法の変数名をMathQuill用のLaTeXサブスクリプト形式に変換
+     * @param {string} varName - 例: "t_0"や"v_ar1"
+     * @returns {string} LaTeXサブスクリプト形式
+     */
+    formatVariableName(varName) {
+        // 例., "t_0" -> "t_{0}", "v_ar1" -> "v_{ar1}"
+        return varName.replace(/_(.+)/, (match, subscript) => {
+            return `_{${subscript}}`;
+        });
+    }
+
+    /**
      * this.calculatorの変数を更新する
      * @param {string} id - 更新する変数のid
+     * @param {string} variable - 更新する変数名
      * @param {float} value - 更新する値
      */
-    updateVariableInCalculator(id, value) {
+    updateVariableInCalculator(id, variable, value) {
         const calculator = this.getActiveCalculator();
         if (calculator) {
-            calculator.controller.dispatch({
-                type: 'adjust-slider-by-dragging-thumb',
+            const varName = this.formatVariableName(variable);
+            calculator.setExpression({
                 id: id,
-                target: value,
-            });
+                latex: `${varName}=${value}`
+            })
         }
+    }
+
+    /**
+     * this.calculatorの描画が完了するまで待機する
+     * @returns {Promise<void>} - 描画完了後に解決される
+     */
+    waitForCalculatorRender() {
+        return new Promise(resolve => {
+            const calculator = this.getActiveCalculator();
+            const checkRender = () => {
+                // __jobStartTimeが-1なら描画完了
+                if (calculator.controller.evaluator.__jobStartTime !== -1) {
+                    requestAnimationFrame(checkRender);
+                } else {
+                    resolve();
+                }
+            };
+            checkRender();
+        });
     }
 
     /**
@@ -230,8 +262,8 @@ class GraTeXApp {
      */
     hasVariableInLabel(variable) {
         const variables = this.calculatorLabel.controller.listModel.__itemModelArray
-                    .filter(e => e.sliderExists)
-                    .map(e => e.formula.assignment)
+            .filter(e => e.sliderExists)
+            .map(e => e.formula.assignment)
         return variables.includes(variable);
     }
 
@@ -242,9 +274,10 @@ class GraTeXApp {
      */
     setVariableInLabel(variable, value) {
         if (!this.hasVariableInLabel(variable)) {
+            const varName = this.formatVariableName(variable);
             this.calculatorLabel.setExpression({
                 id: 'grapen-variable',
-                latex: `${variable}=${value}`
+                latex: `${varName}=${value}`
             });
         }
     }
@@ -263,14 +296,15 @@ class GraTeXApp {
     /**
      * this.calculatorLabelの変数を更新する
      * @param {string} id - 更新する変数のid
+     * @param {string} variable - 更新する変数名
      * @param {float} value - 更新する値
      */
-    updateVariableInLabel(id = null, value) {
-        this.calculatorLabel.controller.dispatch({
-            type: 'adjust-slider-by-dragging-thumb',
+    updateVariableInLabel(id = null, variable, value) {
+        const varName = this.formatVariableName(variable);
+        this.calculatorLabel.setExpression({
             id: id || 'grapen-variable',
-            target: value,
-        });
+            latex: `${varName}=${value}`
+        })
     }
 
     /**

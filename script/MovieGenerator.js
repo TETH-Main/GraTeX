@@ -25,7 +25,7 @@ export class MovieGenerator {
      */
     async init(graTexApp) {
         this.graTexApp = graTexApp;
-        
+
         // FFmpegを使わない独立したGifGeneratorとMp4Generatorを初期化
         this.gifGenerator = new GifGenerator();
         this.mp4Generator = new Mp4Generator();
@@ -96,18 +96,6 @@ export class MovieGenerator {
     }
 
     /**
-     * アンダースコア記法の変数名をMathQuill用のLaTeXサブスクリプト形式に変換
-     * @param {string} varName - 例: "t_0"や"v_ar1"
-     * @returns {string} LaTeXサブスクリプト形式
-     */
-    formatVariableName(varName) {
-        // 例., "t_0" -> "t_{0}", "v_ar1" -> "v_{ar1}"
-        return varName.replace(/_(.+)/, (match, subscript) => {
-            return `_{${subscript}}`;
-        });
-    }
-
-    /**
      * アニメーション変数のプルダウンを更新（カスタムMathQuillドロップダウンで表示）
      */
     updateVariableDropdown() {
@@ -118,7 +106,7 @@ export class MovieGenerator {
 
         // 変数が変更された場合は選択をリセット
         const variablesChanged = JSON.stringify(newVariables) !== JSON.stringify(this.animationVariables);
-        
+
         if (!variablesChanged) {
             return;
         }
@@ -139,7 +127,7 @@ export class MovieGenerator {
             const option = document.createElement('option');
             option.value = id;
             option.textContent = varName;
-            option.setAttribute('data-latex', this.formatVariableName(varName));
+            option.setAttribute('data-latex', this.graTexApp.formatVariableName(varName));
             dropdown.appendChild(option);
         });
 
@@ -320,7 +308,7 @@ export class MovieGenerator {
 
         generateButton.disabled = !hasVariable || !hasValidNumbers || !validRange;
     }
-    
+
     /**
      * アニメーション変数の変化を監視開始
      */
@@ -417,20 +405,12 @@ export class MovieGenerator {
 
         // 画像サイズが変更されていればリセット
         if (this.hasImageDimensionsChanged()) {
-            console.log('画像サイズが変更されました。GIF画像をリセットします');
             this.resetGifImages();
         }
 
-        // imageDimensionから画像サイズを取得
-        const imageDimensionForm = document.forms.imageDimension;
-        const imageDimensionValue = imageDimensionForm ? imageDimensionForm.elements[0].value : '1920,1080,640,96,720';
-        const [imageWidth, imageHeight] = imageDimensionValue.split(',').map(num => parseInt(num, 10));
-
         this.updateCurrentImageDimensions();
 
-        console.log(`Using image dimensions: ${imageWidth}x${imageHeight} from form: ${imageDimensionValue}`);        // プレビュー用のメイン画像とコントロール取得
         const generateContainer = document.getElementById('generate-container');
-        generateContainer.style.display = 'block';
 
         const mainPreview = document.getElementById('preview');
 
@@ -469,51 +449,14 @@ export class MovieGenerator {
             }
             variableLabelId = this.graTexApp.getVariableIdInLabel(selectedVar.name);
 
-            for (let i = 0; i < values.length; ++i) {
-                const v = values[i];
-                this.graTexApp.updateVariableInCalculator(selectedVar.id, v);
-                if(variableLabelChecked) {
-                    this.graTexApp.updateVariableInLabel(variableLabelId, v);
-                }
-                console.log(`Set ${selectedVar.name} = ${v}`);
-
-                // 描画が反映されるまで少し待つ
-                await new Promise(res => setTimeout(res, 200));
-                // スクリーンショット生成
-                await new Promise(res => {
-                    // GraTeXのPNG生成
-                    this.graTexApp.utils.generate();
-                    // 画像がセットされるまで監視
-                    const preview = this.graTexApp.preview;
-                    const onLoad = () => {
-                        console.log(`フレーム${i}: 画像src生成:`, preview.src ? preview.src.substring(0, 50) + '...' : 'null');
-                        if (preview.src && preview.src !== 'undefined' && preview.src.startsWith('data:image')) {
-                            this.frameImages.push(preview.src);
-                            console.log(`フレーム${i}: frameImagesに追加成功`);
-                        } else {
-                            console.warn(`フレーム${i}: 無効な画像src, スキップ:`, preview.src);
-                        }
-                        preview.removeEventListener('load', onLoad);
-                        res();
-                    };
-                    // 既に画像が同じ場合もあるので、強制的にpush
-                    if (preview.src && preview.src.startsWith('data:image')) {
-                        console.log(`フレーム${i}: 既存画像src使用:`, preview.src.substring(0, 50) + '...');
-                        this.frameImages.push(preview.src);
-                        res();
-                    } else {
-                        preview.addEventListener('load', onLoad);
-                    }
-                });
-            }
-
-            console.log(`Generated ${this.frameImages.length} frames for preview`);
-            console.log('First few frame URLs:', this.frameImages.slice(0, 3).map(url => url ? url.substring(0, 30) + '...' : 'null'));
+            this.frameImages = await this.generateMovieFrames(values, selectedVar, variableLabelId, variableLabelChecked);
 
             const img = mainPreview;
             let idx = 0;
             let playing = true;
-            let timer = null; const showFrame = () => {
+            let timer = null;
+
+            const showFrame = () => {
                 if (this.frameImages.length === 0) {
                     console.warn('No frame images available');
                     pause();
@@ -544,7 +487,9 @@ export class MovieGenerator {
                 // 全フレームが無効な場合は停止
                 console.error('All frames have invalid URLs, stopping playback');
                 pause();
-            }; const play = () => {
+            };
+
+            const play = () => {
                 if (playing) return;
                 playing = true;
                 playLoop();
@@ -564,7 +509,7 @@ export class MovieGenerator {
                 idx = (idx + 1) % this.frameImages.length;
                 timer = setTimeout(playLoop, 1000 / framerate);
             };
-            
+
             // 初期状態: 再生
             const startPreview = () => {
                 if (this.frameImages.length === 0) {
@@ -582,7 +527,6 @@ export class MovieGenerator {
                     mainPreview.alt = 'Error: No valid frames generated. Please try again.';
                     return;
                 }
-                console.log(`Starting preview with ${validFrames.length} valid frames out of ${this.frameImages.length} total`);
 
                 playing = true;
                 playLoop();
@@ -615,7 +559,9 @@ export class MovieGenerator {
             };
 
             setupPreviewClickHandler();
-            
+
+            generateContainer.style.display = 'block';
+
             // 最初のフレーム表示＆再生開始
             showFrame();
             startPreview();
@@ -630,6 +576,32 @@ export class MovieGenerator {
                 this.updateGenerateButtonState();
             }
         }
+    }
+
+    /**
+     * スクリーンショットを取得してムービーフレームを生成
+     */
+    async generateMovieFrames(values, selectedVar, variableLabelId, variableLabelChecked = false) {
+        const srcImages = [];
+        for (let i = 0; i < values.length; ++i) {
+            const v = values[i];
+            this.graTexApp.updateVariableInCalculator(selectedVar.id, selectedVar.name, v);
+            if (variableLabelChecked) {
+                this.graTexApp.updateVariableInLabel(variableLabelId, selectedVar.name, v);
+            }
+
+            // 描画が反映されるまで少し待つ
+            await new Promise(res => setTimeout(res, 50));
+            await this.graTexApp.waitForCalculatorRender();
+
+            const imgSrc = await this.graTexApp.utils.getGraTeXPNGSrc();
+            if (imgSrc && imgSrc.startsWith('data:image')) {
+                srcImages.push(imgSrc);
+            } else {
+                console.warn(`フレーム${i}: 無効な画像src, スキップ:`, imgSrc);
+            }
+        }
+        return srcImages;
     }
 
     /**
@@ -666,16 +638,16 @@ export class MovieGenerator {
         // 現在の状態を保存
         const wasDisabled = gifButton.disabled;
         const hadDisabledClass = gifButton.classList.contains('btn-disabled');
-        
+
         const newGifButton = gifButton.cloneNode(true);
         gifButton.parentNode.replaceChild(newGifButton, gifButton);
-        
+
         // 以前の状態を復元
         newGifButton.disabled = wasDisabled;
         if (hadDisabledClass) {
             newGifButton.classList.add('btn-disabled');
         }
-        
+
         newGifButton.addEventListener('click', async (e) => {
             e.preventDefault();
 
@@ -774,7 +746,7 @@ export class MovieGenerator {
         // 現在の状態を保存
         const wasDisabled = mp4Button.disabled;
         const hadDisabledClass = mp4Button.classList.contains('btn-disabled');
-        
+
         const newMp4Button = mp4Button.cloneNode(true);
         mp4Button.parentNode.replaceChild(newMp4Button, mp4Button);
 
@@ -931,7 +903,6 @@ export class MovieGenerator {
         this.moviePlaybackControls = null;
 
         this.updateCurrentImageDimensions();
-        console.log('GIF生成画像・プレビュー・進捗表示をリセットしました');
     }
 
     /**
@@ -982,8 +953,6 @@ export class MovieGenerator {
             height: imageHeight,
             fullValue: imageDimensionValue
         };
-
-        console.log(`画像サイズを更新: ${imageWidth}x${imageHeight}`);
     }
 
     /**
