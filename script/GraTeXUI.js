@@ -93,7 +93,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt',
+            autoCommands: 'pi theta sqrt sum',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieEndField = this.MQ.MathField(document.getElementById('movie-end'), {
@@ -104,7 +104,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt',
+            autoCommands: 'pi theta sqrt sum',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieStepField = this.MQ.MathField(document.getElementById('movie-step'), {
@@ -115,7 +115,7 @@ export class GraTeXUI {
             supSubsRequireOperand: true,
             charsThatBreakOutOfSupSub: '+-=<>',
             autoSubscriptNumerals: true,
-            autoCommands: 'pi theta sqrt',
+            autoCommands: 'pi theta sqrt sum',
             autoOperatorNames: 'sin cos tan ln log'
         });
         this.movieStepField.latex('1');
@@ -136,6 +136,16 @@ export class GraTeXUI {
                 }
             });
         }
+        
+        const cancelButton = document.getElementById('cancel-movie-button');
+        if (cancelButton) {
+            cancelButton.addEventListener('click', () => {
+                if (this.gratexApp && this.gratexApp.movie) {
+                    this.gratexApp.movie.cancelMovieGeneration();
+                }
+            });
+        }
+        
         const movieVarSelect = document.getElementById('movie-var');
         if (movieVarSelect) {
             movieVarSelect.addEventListener('change', () => {

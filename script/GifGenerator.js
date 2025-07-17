@@ -7,6 +7,7 @@ export class GifGenerator {
     constructor() {
         this.gif = null;
         this.isGenerating = false;
+        this.isCancelled = false;
         this.onProgress = null;
         this.onComplete = null;
         this.onError = null;
@@ -193,11 +194,21 @@ export class GifGenerator {
         if (!base64Images || base64Images.length === 0) {
             throw new Error('画像が指定されていません');
         }
+        
+        // キャンセル状態をリセット
+        this.resetCancelState();
         this.isGenerating = true;
+        
         try {
             if (!this.isLibraryReady) {
                 await this.initPromise;
             }
+            
+            // キャンセルチェック
+            if (this.isCancelled) {
+                throw new Error('GIF generation was cancelled');
+            }
+            
             const firstImage = await this.base64ToImage(base64Images[0]);
             const width = options.width || firstImage.width;
             const height = options.height || firstImage.height;
@@ -210,11 +221,23 @@ export class GifGenerator {
                 repeat: options.repeat !== undefined ? options.repeat : 0,
                 workers: options.workers || 2
             });
+            
             for (let i = 0; i < base64Images.length; i++) {
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('GIF generation was cancelled');
+                }
+                
                 const image = await this.base64ToImage(base64Images[i]);
                 const imageData = this.imageToImageData(image, width, height);
                 this.gif.addFrame(imageData, { delay: this.delay, copy: true });
             }
+            
+            // キャンセルチェック
+            if (this.isCancelled) {
+                throw new Error('GIF generation was cancelled');
+            }
+            
             return new Promise((resolve, reject) => {
                 this.onComplete = resolve;
                 this.onError = reject;
@@ -255,10 +278,19 @@ export class GifGenerator {
      * 生成をキャンセル
      */
     cancel() {
+        console.log('GifGenerator: キャンセル要求を受信');
+        this.isCancelled = true;
         if (this.gif && this.isGenerating) {
             this.gif.abort();
             this.isGenerating = false;
         }
+    }
+
+    /**
+     * キャンセル状態をリセット
+     */
+    resetCancelState() {
+        this.isCancelled = false;
     }
 
     /**

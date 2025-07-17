@@ -22,22 +22,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <script src="./script/getFontColor.js"></script>
-  <script src="https://www.desmos.com/api/v1.12/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
-
   <!-- MathQuill Dependencies -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathquill/0.10.1/mathquill.min.js"></script>
+  <script src="./script/getFontColor.js"></script>
   <script type="text/javascript" async
     src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
-
-  <!-- GIF生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-  <!-- MP4生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js"></script>
-
-  <title>Graph + LaTeX Generator</title>
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JR9SZ33HJ"></script>
   <script>
@@ -48,6 +39,13 @@
     gtag('js', new Date());
     gtag('config', 'G-1JR9SZ33HJ');
   </script>
+  <script src="https://www.desmos.com/api/v1.12/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+  <!-- GIF生成ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+  <!-- MP4生成ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js"></script>
+
+  <title>Graph + LaTeX Generator</title>
 </head>
 
 <body>
@@ -82,7 +80,7 @@
       <label for="version-3d">3D</label>
     </div>
     <div id="calculator"></div>
-    <iframe id="calculator-3d" src="./3d.html"></iframe>
+    <div id="calculator-3d"></div>
     <div class="card" id="form-container">
       <div class="card-body">
         <!-- タブ切り替えUI -->
@@ -153,6 +151,7 @@
                     <option value="4" selected>4</option>
                     <option value="6">6</option>
                     <option value="8">8</option>
+                    <option value="auto">Auto</option>
                   </select>
                 </form>
               </div>
@@ -225,8 +224,17 @@
                     <option value="1500,500,300,64,360">1500 × 500 (Twitter header)</option>
                     <option value="1700,600,360,64,420">1700 × 600 (Discord banner)</option>
                     <option value="680,240,128,32,160">640 × 240 (Discord banner)</option>
+                    <option value="custom">Custom</option>
                   </select>
                 </form>
+              </div>
+              <!-- カスタムサイズ入力フィールド -->
+              <div class="form-group" id="custom-dimension-inputs" style="display: none;">
+                <div class="custom-dimension-row">
+                  <input type="number" id="custom-width" class="form-control custom-dimension-input" placeholder="Width" min="100" max="10000" step="1">
+                  <span class="custom-dimension-separator">×</span>
+                  <input type="number" id="custom-height" class="form-control custom-dimension-input" placeholder="Height" min="100" max="10000" step="1">
+                </div>
               </div>
             </div>
             <div class="col">
@@ -245,21 +253,25 @@
                 Add Variable Label
               </label>
             </div>
-          </div>
-            <div class="form-row" style="align-items: center;">
+          </div>          <div class="form-row" style="align-items: center;">
             <div class="col stretch">
               <div class="form-group">
                 <div id="movie-start" class="form-control mathquill-input"></div>
               </div>
             </div>
-            <div class="movie-leq">&leq;</div>
+            <div style="align-self: center; padding: 0 8px;">
+              <span class="movie-leq">&leq;</span>
+            </div>
             <div class="col stretch">
               <div class="form-group">
                 <select id="movie-var" class="form-control">
+                  <!-- JSで変数リストを追加する想定 -->
                 </select>
               </div>
             </div>
-            <div class="movie-leq">&leq;</div>
+            <div style="align-self: center; padding: 0 8px;">
+              <span class="movie-leq">&leq;</span>
+            </div>
             <div class="col stretch">
               <div class="form-group">
                 <div id="movie-end" class="form-control mathquill-input"></div>
@@ -280,8 +292,11 @@
               </div>
             </div>
             <div class="col" style="max-width: 220px;">
-              <button class="btn btn-primary" id="generate-movie-button" type="button" style="width: 100%;">
+              <button class="btn btn-primary btn-generate" id="generate-movie-button" type="button" style="width: 100%;">
                 <span>Generate Movie</span>
+              </button>
+              <button class="btn btn-cancel btn-generate" id="cancel-movie-button" type="button" style="width: 100%; display: none;">
+                <span>Cancel Generation</span>
               </button>
             </div>
           </div>

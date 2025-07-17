@@ -18,6 +18,8 @@ export class MovieGenerator {
         this.currentImageDimensions = null;
         this.isMoviePlaybackActive = false;
         this.moviePlaybackControls = null;
+        this.isGeneratingMovie = false;
+        this.isCancelled = false;
     }
 
     /**
@@ -25,7 +27,7 @@ export class MovieGenerator {
      */
     async init(graTexApp) {
         this.graTexApp = graTexApp;
-
+        
         // FFmpegを使わない独立したGifGeneratorとMp4Generatorを初期化
         this.gifGenerator = new GifGenerator();
         this.mp4Generator = new Mp4Generator();
@@ -96,6 +98,18 @@ export class MovieGenerator {
     }
 
     /**
+     * アンダースコア記法の変数名をMathQuill用のLaTeXサブスクリプト形式に変換
+     * @param {string} varName - 例: "t_0"や"v_ar1"
+     * @returns {string} LaTeXサブスクリプト形式
+     */
+    formatVariableName(varName) {
+        // 例., "t_0" -> "t_{0}", "v_ar1" -> "v_{ar1}"
+        return varName.replace(/_(.+)/, (match, subscript) => {
+            return `_{${subscript}}`;
+        });
+    }
+
+    /**
      * アニメーション変数のプルダウンを更新（カスタムMathQuillドロップダウンで表示）
      */
     updateVariableDropdown() {
@@ -106,7 +120,7 @@ export class MovieGenerator {
 
         // 変数が変更された場合は選択をリセット
         const variablesChanged = JSON.stringify(newVariables) !== JSON.stringify(this.animationVariables);
-
+        
         if (!variablesChanged) {
             return;
         }
@@ -127,7 +141,7 @@ export class MovieGenerator {
             const option = document.createElement('option');
             option.value = id;
             option.textContent = varName;
-            option.setAttribute('data-latex', this.graTexApp.formatVariableName(varName));
+            option.setAttribute('data-latex', this.formatVariableName(varName));
             dropdown.appendChild(option);
         });
 
@@ -308,7 +322,7 @@ export class MovieGenerator {
 
         generateButton.disabled = !hasVariable || !hasValidNumbers || !validRange;
     }
-
+    
     /**
      * アニメーション変数の変化を監視開始
      */
@@ -339,8 +353,9 @@ export class MovieGenerator {
         const imageDimensionForm = document.forms.imageDimension;
         if (imageDimensionForm && imageDimensionForm.elements[0]) {
             imageDimensionForm.elements[0].addEventListener('change', () => {
-                console.log('画像サイズが変更されました。GIF画像をリセットします');
-                this.resetGifImages();
+                console.log('画像サイズが変更されました。フレーム画像をリセットします');
+                this.frameImages = [];
+                this.updateCurrentImageDimensions();
             });
         }
     }
@@ -403,14 +418,26 @@ export class MovieGenerator {
             return;
         }
 
+        // キャンセル状態をリセット
+        this.isCancelled = false;
+        this.isGeneratingMovie = true;
+
         // 画像サイズが変更されていればリセット
         if (this.hasImageDimensionsChanged()) {
+            console.log('画像サイズが変更されました。GIF画像をリセットします');
             this.resetGifImages();
         }
 
+        // imageDimensionから画像サイズを取得
+        const imageDimensionForm = document.forms.imageDimension;
+        const imageDimensionValue = imageDimensionForm ? imageDimensionForm.elements[0].value : '1920,1080,640,96,720';
+        const [imageWidth, imageHeight] = imageDimensionValue.split(',').map(num => parseInt(num, 10));
+
         this.updateCurrentImageDimensions();
 
+        console.log(`Using image dimensions: ${imageWidth}x${imageHeight} from form: ${imageDimensionValue}`);        // プレビュー用のメイン画像とコントロール取得
         const generateContainer = document.getElementById('generate-container');
+        generateContainer.style.display = 'block';
 
         const mainPreview = document.getElementById('preview');
 
@@ -426,9 +453,17 @@ export class MovieGenerator {
         controlsContainer.innerHTML = '';
 
         const generateButton = document.getElementById('generate-movie-button');
+        const cancelButton = document.getElementById('cancel-movie-button');
+        
         if (generateButton) {
             generateButton.disabled = true;
             generateButton.innerHTML = '<span>Generating...</span>';
+            generateButton.style.display = 'none';
+        }
+        
+        if (cancelButton) {
+            cancelButton.style.display = 'block';
+            cancelButton.disabled = false;
         }
 
         try {
@@ -449,14 +484,59 @@ export class MovieGenerator {
             }
             variableLabelId = this.graTexApp.getVariableIdInLabel(selectedVar.name);
 
-            this.frameImages = await this.generateMovieFrames(values, selectedVar, variableLabelId, variableLabelChecked);
+            for (let i = 0; i < values.length; ++i) {
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    console.log('Movie generation cancelled by user');
+                    throw new Error('Movie generation was cancelled');
+                }
+                
+                const v = values[i];
+                this.graTexApp.updateVariableInCalculator(selectedVar.id, v);
+                if(variableLabelChecked) {
+                    this.graTexApp.updateVariableInLabel(variableLabelId, v);
+                }
+                console.log(`Set ${selectedVar.name} = ${v}`);
+
+                // 描画が反映されるまで少し待つ
+                await new Promise(res => setTimeout(res, 200));
+                
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    console.log('Movie generation cancelled by user');
+                    throw new Error('Movie generation was cancelled');
+                }
+                
+                // スクリーンショット生成
+                await new Promise(res => {
+                    // GraTeXのPNG生成（base64を直接取得）
+                    this.graTexApp.utils.generatePNGBase64().then(base64Image => {
+                        console.log(`フレーム${i}: 画像生成完了:`, base64Image ? base64Image.substring(0, 50) + '...' : 'null');
+                        if (base64Image && base64Image !== 'undefined' && base64Image.startsWith('data:image')) {
+                            this.frameImages.push(base64Image);
+                            console.log(`フレーム${i}: frameImagesに追加成功`);
+                            
+                            // プレビューにも現在のフレームを表示
+                            this.graTexApp.preview.src = base64Image;
+                            this.graTexApp.downloadPNG.href = base64Image;
+                        } else {
+                            console.warn(`フレーム${i}: 無効な画像データ, スキップ:`, base64Image);
+                        }
+                        res();
+                    }).catch(error => {
+                        console.error(`フレーム${i}: 画像生成エラー:`, error);
+                        res();
+                    });
+                });
+            }
+
+            console.log(`Generated ${this.frameImages.length} frames for preview`);
+            console.log('First few frame URLs:', this.frameImages.slice(0, 3).map(url => url ? url.substring(0, 30) + '...' : 'null'));
 
             const img = mainPreview;
             let idx = 0;
             let playing = true;
-            let timer = null;
-
-            const showFrame = () => {
+            let timer = null; const showFrame = () => {
                 if (this.frameImages.length === 0) {
                     console.warn('No frame images available');
                     pause();
@@ -487,9 +567,7 @@ export class MovieGenerator {
                 // 全フレームが無効な場合は停止
                 console.error('All frames have invalid URLs, stopping playback');
                 pause();
-            };
-
-            const play = () => {
+            }; const play = () => {
                 if (playing) return;
                 playing = true;
                 playLoop();
@@ -509,7 +587,7 @@ export class MovieGenerator {
                 idx = (idx + 1) % this.frameImages.length;
                 timer = setTimeout(playLoop, 1000 / framerate);
             };
-
+            
             // 初期状態: 再生
             const startPreview = () => {
                 if (this.frameImages.length === 0) {
@@ -527,6 +605,7 @@ export class MovieGenerator {
                     mainPreview.alt = 'Error: No valid frames generated. Please try again.';
                     return;
                 }
+                console.log(`Starting preview with ${validFrames.length} valid frames out of ${this.frameImages.length} total`);
 
                 playing = true;
                 playLoop();
@@ -559,49 +638,46 @@ export class MovieGenerator {
             };
 
             setupPreviewClickHandler();
-
-            generateContainer.style.display = 'block';
-
+            
             // 最初のフレーム表示＆再生開始
             showFrame();
             startPreview();
 
+            // プレビューにも最初のフレームを表示
+            if (this.frameImages.length > 0) {
+                this.graTexApp.preview.src = this.frameImages[0];
+                this.graTexApp.downloadPNG.href = this.frameImages[0];
+                this.graTexApp.containerElt.style.display = 'block';
+            }
+
             this.showSaveButtons();
 
             console.log(`Generated ${this.frameImages.length} frames for animation`);
+        } catch (error) {
+            console.error('Movie generation error:', error);
+            if (error.message.includes('cancelled')) {
+                console.log('Movie generation was cancelled by user');
+            } else {
+                // エラーをユーザーに通知
+                alert('Movie generation failed: ' + error.message);
+            }
         } finally {
+            this.isGeneratingMovie = false;
+            const generateButton = document.getElementById('generate-movie-button');
+            const cancelButton = document.getElementById('cancel-movie-button');
+            
             if (generateButton) {
                 generateButton.disabled = false;
                 generateButton.innerHTML = '<span>Generate Movie</span>';
+                generateButton.style.display = 'block';
                 this.updateGenerateButtonState();
             }
-        }
-    }
-
-    /**
-     * スクリーンショットを取得してムービーフレームを生成
-     */
-    async generateMovieFrames(values, selectedVar, variableLabelId, variableLabelChecked = false) {
-        const srcImages = [];
-        for (let i = 0; i < values.length; ++i) {
-            const v = values[i];
-            this.graTexApp.updateVariableInCalculator(selectedVar.id, selectedVar.name, v);
-            if (variableLabelChecked) {
-                this.graTexApp.updateVariableInLabel(variableLabelId, selectedVar.name, v);
-            }
-
-            // 描画が反映されるまで少し待つ
-            await new Promise(res => setTimeout(res, 50));
-            await this.graTexApp.waitForCalculatorRender();
-
-            const imgSrc = await this.graTexApp.utils.getGraTeXPNGSrc();
-            if (imgSrc && imgSrc.startsWith('data:image')) {
-                srcImages.push(imgSrc);
-            } else {
-                console.warn(`フレーム${i}: 無効な画像src, スキップ:`, imgSrc);
+            
+            if (cancelButton) {
+                cancelButton.style.display = 'none';
+                cancelButton.disabled = true;
             }
         }
-        return srcImages;
     }
 
     /**
@@ -638,16 +714,16 @@ export class MovieGenerator {
         // 現在の状態を保存
         const wasDisabled = gifButton.disabled;
         const hadDisabledClass = gifButton.classList.contains('btn-disabled');
-
+        
         const newGifButton = gifButton.cloneNode(true);
         gifButton.parentNode.replaceChild(newGifButton, gifButton);
-
+        
         // 以前の状態を復元
         newGifButton.disabled = wasDisabled;
         if (hadDisabledClass) {
             newGifButton.classList.add('btn-disabled');
         }
-
+        
         newGifButton.addEventListener('click', async (e) => {
             e.preventDefault();
 
@@ -666,6 +742,9 @@ export class MovieGenerator {
             }
 
             try {
+                // キャンセル状態をリセット
+                this.isCancelled = false;
+                
                 // 全ての保存ボタンを無効化
                 this.disableAllSaveButtons();
 
@@ -676,6 +755,11 @@ export class MovieGenerator {
                 if (!this.gifGenerator.isReady()) {
                     progressContainer.querySelector('#progress-percentage').textContent = '初期化中...';
                     await this.gifGenerator.waitForReady();
+                }
+
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('GIF生成がキャンセルされました');
                 }
 
                 const framerate = parseInt(document.getElementById('movie-framerate')?.value || 30, 10);
@@ -698,8 +782,19 @@ export class MovieGenerator {
                 };
 
                 console.log(`GIF生成: フレーム数${this.frameImages.length}, ${framerate}fps (${delay}ms delay)`);
+                
+                // 最終キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('GIF生成がキャンセルされました');
+                }
+                
                 // GIF生成実行
                 const gifBlob = await this.gifGenerator.generateFromBase64Array(this.frameImages, gifOptions);
+
+                // キャンセルチェック（生成完了後）
+                if (this.isCancelled) {
+                    throw new Error('GIF生成がキャンセルされました');
+                }
 
                 // ダウンロード
                 this.gifGenerator.downloadGif(gifBlob, 'GraTeX_animation.gif');
@@ -720,6 +815,17 @@ export class MovieGenerator {
 
             } catch (error) {
                 console.error('GIF生成エラー:', error);
+                
+                // キャンセルエラーの場合は特別な処理
+                if (error.message.includes('キャンセル') || 
+                    error.message.includes('cancelled') || 
+                    error.message.includes('cancel') ||
+                    this.isCancelled) {
+                    console.log('GIF生成がキャンセルされました');
+                    // キャンセルの場合はアラートを表示しない
+                    return;
+                }
+                
                 alert('GIF生成に失敗しました: ' + error.message);
 
                 // エラー時の表示
@@ -746,7 +852,7 @@ export class MovieGenerator {
         // 現在の状態を保存
         const wasDisabled = mp4Button.disabled;
         const hadDisabledClass = mp4Button.classList.contains('btn-disabled');
-
+        
         const newMp4Button = mp4Button.cloneNode(true);
         mp4Button.parentNode.replaceChild(newMp4Button, mp4Button);
 
@@ -774,6 +880,9 @@ export class MovieGenerator {
             }
 
             try {
+                // キャンセル状態をリセット
+                this.isCancelled = false;
+                
                 // 全ての保存ボタンを無効化
                 this.disableAllSaveButtons();
 
@@ -784,6 +893,11 @@ export class MovieGenerator {
                 if (!this.mp4Generator.isReady()) {
                     progressContainer.querySelector('#progress-percentage').textContent = '初期化中...';
                     await this.mp4Generator.waitForReady();
+                }
+
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('MP4生成がキャンセルされました');
                 }
 
                 const framerate = parseInt(document.getElementById('movie-framerate')?.value || 30, 10);
@@ -802,8 +916,19 @@ export class MovieGenerator {
                 };
 
                 console.log(`MP4生成: フレーム数${this.frameImages.length}, ${framerate}fps (${delay}ms delay)`);
+                
+                // 最終キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('MP4生成がキャンセルされました');
+                }
+                
                 // MP4生成実行
                 const mp4Blob = await this.mp4Generator.generateFromImages(this.frameImages, mp4Options);
+
+                // キャンセルチェック（生成完了後）
+                if (this.isCancelled) {
+                    throw new Error('MP4生成がキャンセルされました');
+                }
 
                 // ダウンロード
                 this.mp4Generator.download(mp4Blob, 'GraTeX_animation');
@@ -824,6 +949,17 @@ export class MovieGenerator {
 
             } catch (error) {
                 console.error('MP4生成エラー:', error);
+                
+                // キャンセルエラーの場合は特別な処理
+                if (error.message.includes('キャンセル') || 
+                    error.message.includes('cancelled') || 
+                    error.message.includes('cancel') ||
+                    this.isCancelled) {
+                    console.log('MP4生成がキャンセルされました');
+                    // キャンセルの場合はアラートを表示しない
+                    return;
+                }
+                
                 alert('MP4生成に失敗しました: ' + error.message);
 
                 // エラー時の表示
@@ -903,6 +1039,7 @@ export class MovieGenerator {
         this.moviePlaybackControls = null;
 
         this.updateCurrentImageDimensions();
+        console.log('GIF生成画像・プレビュー・進捗表示をリセットしました');
     }
 
     /**
@@ -953,6 +1090,8 @@ export class MovieGenerator {
             height: imageHeight,
             fullValue: imageDimensionValue
         };
+
+        console.log(`画像サイズを更新: ${imageWidth}x${imageHeight}`);
     }
 
     /**
@@ -1011,14 +1150,25 @@ export class MovieGenerator {
         if (!progressContainer) {
             progressContainer = document.createElement('div');
             progressContainer.id = 'progress-display-container';
-            progressContainer.className = 'progress-display-container'; // クラス名を追加
+            progressContainer.className = 'progress-display-container';
             document.body.appendChild(progressContainer);
         }
 
         progressContainer.innerHTML = `
             <div style="margin-bottom: 10px;">${message}</div>
             <div id="progress-percentage" class="progress-percentage">0%</div>
+            <button id="progress-cancel-btn" class="progress-cancel-btn" type="button">
+                Cancel Export
+            </button>
         `;
+
+        // キャンセルボタンのイベントリスナーを設定
+        const cancelBtn = document.getElementById('progress-cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                this.cancelMovieGeneration();
+            });
+        }
 
         return progressContainer;
     }
@@ -1031,5 +1181,42 @@ export class MovieGenerator {
         if (progressContainer) {
             progressContainer.remove();
         }
+    }
+
+    /**
+     * 動画生成をキャンセル
+     */
+    cancelMovieGeneration() {
+        console.log('MovieGenerator: キャンセル要求を受信');
+        this.isCancelled = true;
+        
+        // GifGeneratorとMp4Generatorのキャンセルも呼び出し
+        if (this.gifGenerator) {
+            console.log('MovieGenerator: GifGeneratorをキャンセル中...');
+            this.gifGenerator.cancel();
+        }
+        if (this.mp4Generator) {
+            console.log('MovieGenerator: Mp4Generatorをキャンセル中...');
+            this.mp4Generator.cancel();
+        }
+        
+        // 進捗表示にキャンセル中メッセージを表示
+        const progressContainer = document.getElementById('progress-display-container');
+        if (progressContainer) {
+            progressContainer.innerHTML = `
+                <div style="margin-bottom: 10px;">動画生成をキャンセル中...</div>
+                <div class="progress-percentage">処理を停止しています</div>
+            `;
+        }
+        
+        // 短時間後に進捗表示を削除
+        setTimeout(() => {
+            this.removeProgressDisplay();
+            
+            // 保存ボタンを再有効化
+            this.enableAllSaveButtons();
+            
+            console.log('MovieGenerator: キャンセル処理完了');
+        }, 1000);
     }
 }
