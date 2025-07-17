@@ -84,10 +84,6 @@ a.disabled {
   cursor: default;
 }
 
-.dcg-calculator-api-container-v1_12 .dcg-mq-math-mode .dcg-mq-operator-name {
-    font-family: Times New Roman, Symbola, serif!important;
-}
-
 .navbar {
   margin-bottom: 24px;
   position: relative;
@@ -172,12 +168,12 @@ a.disabled {
 #calculator-label {
   width: 100%;
   height: 500px;
+  margin-bottom: 5.5px;
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 #calculator,
 #calculator-label {
-  margin-bottom: 5.5px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
@@ -258,6 +254,7 @@ a.disabled {
   min-height: calc(1.5em + 0.75rem + 2px);
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
+  line-height: 1.5 !important;
   background-color: #fff;
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
@@ -307,7 +304,7 @@ a.disabled {
   flex-wrap: wrap;
   align-content: center;
   align-items: flex-end;
-  column-gap: 5px;
+  column-gap: 15px;
 }
 
 #label-radio {
@@ -538,12 +535,33 @@ textarea {
   justify-content: flex-end;
 }
 
-#generate-movie-button {
-  float: right;
+.btn-generate {
   margin: 10px 0;
 }
 
+#generate-movie-button {
+  float: right;
+}
+
 #generate-movie-button:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.btn-cancel {
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.btn-cancel:disabled {
   background-color: #6c757d;
   border-color: #6c757d;
   cursor: not-allowed;
@@ -570,6 +588,7 @@ textarea {
 #movie-panel .mathquill-input {
   min-height: auto;
   height: auto;
+  min-height: calc(1.5em + 0.75rem + 2px);
   max-height: none;
   display: flex;
   align-items: center;
@@ -688,4 +707,98 @@ textarea {
 .progress-percentage {
   font-weight: bold;
   font-size: 18px;
+}
+
+/* 進捗表示のキャンセルボタン */
+.progress-cancel-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background-color 0.2s ease;
+  display: inline-block;
+  text-decoration: none;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.progress-cancel-btn:hover {
+  background-color: #c82333;
+  text-decoration: none;
+  color: white;
+}
+
+.progress-cancel-btn:active {
+  background-color: #bd2130;
+  transform: translateY(1px);
+}
+
+.progress-cancel-btn:focus {
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
+}
+
+/* カスタム画像サイズ入力フィールド */
+.custom-dimension-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.custom-dimension-input {
+  flex: 1;
+  min-width: 80px;
+  height: calc(1.5em + 0.75rem + 2px);
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.custom-dimension-input:focus {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.custom-dimension-separator {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #495057;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* カスタム入力フィールドのエラー表示 */
+.custom-dimension-input.error {
+  border: 2px solid #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.custom-dimension-input-wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.custom-dimension-error-icon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #dc3545;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 10;
 }

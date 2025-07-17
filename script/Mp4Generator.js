@@ -9,6 +9,7 @@ export class Mp4Generator {
         this.videoEncoder = null;
         this.chunks = []; // MP4データチャンクを格納する配列
         this.isGenerating = false;
+        this.isCancelled = false;
         this.onProgress = null;
         this.onComplete = null;
         this.onError = null;
@@ -226,10 +227,17 @@ export class Mp4Generator {
 
         const delay = options.delay || 500; // デフォルト500ms間隔
         
+        // キャンセル状態をリセット
+        this.resetCancelState();
         this.isGenerating = true;
 
         try {
             console.log(`Mp4Generator: MP4生成開始（${base64Images.length}フレーム）`);
+
+            // キャンセルチェック
+            if (this.isCancelled) {
+                throw new Error('MP4 generation was cancelled');
+            }
 
             // 最初のフレームで初期化
             const firstImg = new Image();
@@ -248,6 +256,11 @@ export class Mp4Generator {
 
             // 各フレームを追加
             for (let i = 0; i < base64Images.length; i++) {
+                // キャンセルチェック
+                if (this.isCancelled) {
+                    throw new Error('MP4 generation was cancelled');
+                }
+                
                 const timestamp = i * delay;
                 await this.addFrame(base64Images[i], timestamp);
 
@@ -256,6 +269,12 @@ export class Mp4Generator {
                     this.onProgress(Math.round((i + 1) / base64Images.length * 100));
                 }
             }
+            
+            // キャンセルチェック
+            if (this.isCancelled) {
+                throw new Error('MP4 generation was cancelled');
+            }
+            
             // エンコーダーを終了
             if (this.videoEncoder && this.videoEncoder.state === 'configured') {
                 await this.videoEncoder.flush();
@@ -299,11 +318,20 @@ export class Mp4Generator {
      * MP4生成をキャンセル
      */
     cancel() {
+        console.log('Mp4Generator: キャンセル要求を受信');
+        this.isCancelled = true;
         if (this.isGenerating) {
             console.log('Mp4Generator: MP4生成をキャンセル');
             this.cleanup();
             this.isGenerating = false;
         }
+    }
+
+    /**
+     * キャンセル状態をリセット
+     */
+    resetCancelState() {
+        this.isCancelled = false;
     }
     
     /**
