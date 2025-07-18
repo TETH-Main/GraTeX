@@ -184,6 +184,11 @@ a.disabled {
   margin-bottom: 1rem;
 }
 
+/* Desmos operator name font override */
+.dcg-mq-operator-name {
+  font-family: 'Times New Roman', serif !important;
+}
+
 .version-switch {
   position: relative;
   display: flex;

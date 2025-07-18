@@ -29,7 +29,7 @@ class GraTeXApp {
             notes: false,
             // sliders: false,
             actions: false,
-            branding: false
+            branding: false,
         });
         this.calculatorLabelScreenshot = Desmos.GraphingCalculator(document.createElement('div'), {
             showGrid: false,
@@ -110,6 +110,11 @@ class GraTeXApp {
                 this.calc3DElt.style.display = '';
             }
             this.importGraph(q['url'] || q['hash']);
+            
+            // GraTeX完全読み込み後にstateクエリを処理
+            setTimeout(() => {
+                this.handleStateQueries(q);
+            }, 200);
         };
 
         document.querySelectorAll('input[name="version"]').forEach(element => {
@@ -127,6 +132,11 @@ class GraTeXApp {
         document.querySelectorAll('input[name="label"]').forEach(element => {
             element.addEventListener('change', event => {
                 this.calcLabelElt.style.display = event.target.value === 'custom' ? '' : 'none';
+                
+                // customラジオボタンが選択された場合、現在のグラフ状態をlabelに適用
+                if (event.target.value === 'custom') {
+                    this.loadCurrentStateToLabel();
+                }
             });
         });
 
@@ -147,6 +157,50 @@ class GraTeXApp {
         return Object.fromEntries(
             Array.from(new URLSearchParams(location.search), ([key, value]) => [key.toLowerCase(), value || true])
         );
+    }
+
+    /**
+     * URLクエリからstateパラメータを処理する
+     * @param {Object} queries - URLクエリオブジェクト
+     */
+    handleStateQueries(queries) {
+        try {
+            // stateクエリ: 両方の計算機にセット
+            if (queries['state']) {
+                const stateData = decodeURIComponent(queries['state']);
+                const success = this.setState(stateData);
+                if (success) {
+                    console.log('GraTeX: State loaded from URL query (both 2D and 3D)');
+                } else {
+                    console.error('GraTeX: Failed to load state from URL query');
+                }
+            }
+
+            // 2dstateクエリ: 2D計算機のみにセット
+            if (queries['2dstate']) {
+                const state2dData = decodeURIComponent(queries['2dstate']);
+                const success = this.set2dState(state2dData);
+                if (success) {
+                    console.log('GraTeX: 2D state loaded from URL query');
+                } else {
+                    console.error('GraTeX: Failed to load 2D state from URL query');
+                }
+            }
+
+            // 3dstateクエリ: 3D計算機のみにセット
+            if (queries['3dstate']) {
+                const state3dData = decodeURIComponent(queries['3dstate']);
+                const success = this.set3dState(state3dData);
+                if (success) {
+                    console.log('GraTeX: 3D state loaded from URL query');
+                } else {
+                    console.error('GraTeX: Failed to load 3D state from URL query');
+                }
+            }
+
+        } catch (error) {
+            console.error('GraTeX: Error processing state queries:', error);
+        }
     }
 
     importGraph(hash) {
@@ -245,6 +299,29 @@ class GraTeXApp {
         if (radio) {
             radio.checked = true;
             radio.dispatchEvent(new Event('change'));
+        }
+    }
+
+    /**
+     * 現在のアクティブなグラフの数式をカスタムラベル計算機にロードする
+     */
+    loadCurrentStateToLabel() {
+        try {
+            // 現在のアクティブなグラフの数式を取得
+            const currentExpressions = this.getExpressions();
+            
+            if (!currentExpressions || currentExpressions.length === 0) {
+                console.warn('GraTeX: No expressions available to load into label');
+                return false;
+            }
+
+            // calculatorLabelに数式をセット
+            this.setExpressions(currentExpressions, this.calculatorLabel);
+            console.log('GraTeX: Current graph expressions loaded into custom label calculator');
+            return true;
+        } catch (error) {
+            console.error('GraTeX: Error loading current expressions to label:', error);
+            return false;
         }
     }
 
@@ -417,6 +494,318 @@ class GraTeXApp {
             return (typeof v === 'number' && !isNaN(v)) ? v : null;
         } catch {
             return null;
+        }
+    }
+
+    // ======================
+    // GraTeX API - Graph State Management
+    // ======================
+
+    /**
+     * 2D計算機にグラフ状態をセットする
+     * @param {string} jsonString - セットするグラフ状態のJSON文字列
+     * @returns {boolean} セット成功時はtrue
+     */
+    set2dState(jsonString) {
+        try {
+            if (!jsonString || typeof jsonString !== 'string') {
+                console.error('GraTeX API: Invalid JSON string provided');
+                return false;
+            }
+
+            const state = JSON.parse(jsonString);
+            
+            if (!this.calculator2D) {
+                console.error('GraTeX API: 2D calculator not initialized');
+                return false;
+            }
+
+            this.calculator2D.setState(state);
+            console.log('GraTeX API: 2D graph state set successfully');
+            return true;
+        } catch (error) {
+            console.error('GraTeX API: Error setting 2D graph state:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 3D計算機にグラフ状態をセットする
+     * @param {string} jsonString - セットするグラフ状態のJSON文字列
+     * @returns {boolean} セット成功時はtrue
+     */
+    set3dState(jsonString) {
+        try {
+            if (!jsonString || typeof jsonString !== 'string') {
+                console.error('GraTeX API: Invalid JSON string provided');
+                return false;
+            }
+
+            const state = JSON.parse(jsonString);
+            
+            if (!this.calculator3D) {
+                console.error('GraTeX API: 3D calculator not initialized');
+                return false;
+            }
+
+            this.calculator3D.setState(state);
+            console.log('GraTeX API: 3D graph state set successfully');
+            return true;
+        } catch (error) {
+            console.error('GraTeX API: Error setting 3D graph state:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 2Dと3D両方の計算機にグラフ状態をセットする
+     * @param {string} jsonString - セットするグラフ状態のJSON文字列
+     * @returns {boolean} セット成功時はtrue
+     */
+    setState(jsonString) {
+        try {
+            if (!jsonString || typeof jsonString !== 'string') {
+                console.error('GraTeX API: Invalid JSON string provided');
+                return false;
+            }
+
+            const state = JSON.parse(jsonString);
+            let success = true;
+
+            // 2D計算機にセット
+            if (this.calculator2D) {
+                try {
+                    this.calculator2D.setState(state);
+                    console.log('GraTeX API: 2D graph state set successfully');
+                } catch (error) {
+                    console.error('GraTeX API: Error setting 2D graph state:', error);
+                    success = false;
+                }
+            } else {
+                console.warn('GraTeX API: 2D calculator not initialized');
+                success = false;
+            }
+
+            // 3D計算機にセット
+            if (this.calculator3D) {
+                try {
+                    this.calculator3D.setState(state);
+                    console.log('GraTeX API: 3D graph state set successfully');
+                } catch (error) {
+                    console.error('GraTeX API: Error setting 3D graph state:', error);
+                    success = false;
+                }
+            } else {
+                console.warn('GraTeX API: 3D calculator not initialized');
+                success = false;
+            }
+
+            if (success) {
+                console.log('GraTeX API: Graph state set successfully for both 2D and 3D calculators');
+            }
+
+            return success;
+        } catch (error) {
+            console.error('GraTeX API: Error parsing JSON string:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 現在の2Dグラフ状態を取得する
+     * @returns {Object|null} グラフ状態オブジェクト、エラー時はnull
+     */
+    get2dState() {
+        try {
+            if (!this.calculator2D) {
+                console.error('GraTeX API: 2D calculator not initialized');
+                return null;
+            }
+            return this.calculator2D.getState();
+        } catch (error) {
+            console.error('GraTeX API: Error getting 2D graph state:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 現在の3Dグラフ状態を取得する
+     * @returns {Object|null} グラフ状態オブジェクト、エラー時はnull
+     */
+    get3dState() {
+        try {
+            if (!this.calculator3D) {
+                console.error('GraTeX API: 3D calculator not initialized');
+                return null;
+            }
+            return this.calculator3D.getState();
+        } catch (error) {
+            console.error('GraTeX API: Error getting 3D graph state:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 現在アクティブな計算機のグラフ状態を取得する
+     * @returns {Object|null} グラフ状態オブジェクト、エラー時はnull
+     */
+    getState() {
+        const is2D = this.is2DCalculatorActive();
+        return is2D ? this.get2dState() : this.get3dState();
+    }
+
+    // ======================
+    // GraTeX API - Expressions Management
+    // ======================
+
+    /**
+     * 2D計算機の数式を取得する
+     * @returns {Array|null} 数式配列、エラー時はnull
+     */
+    get2dExpressions() {
+        try {
+            if (!this.calculator2D) {
+                console.error('GraTeX API: 2D calculator not initialized');
+                return null;
+            }
+            return this.calculator2D.getExpressions();
+        } catch (error) {
+            console.error('GraTeX API: Error getting 2D expressions:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 3D計算機の数式を取得する
+     * @returns {Array|null} 数式配列、エラー時はnull
+     */
+    get3dExpressions() {
+        try {
+            if (!this.calculator3D) {
+                console.error('GraTeX API: 3D calculator not initialized');
+                return null;
+            }
+            return this.calculator3D.getExpressions();
+        } catch (error) {
+            console.error('GraTeX API: Error getting 3D expressions:', error);
+            return null;
+        }
+    }
+
+    /**
+     * 現在アクティブな計算機の数式を取得する
+     * @returns {Array|null} 数式配列、エラー時はnull
+     */
+    getExpressions() {
+        const is2D = this.is2DCalculatorActive();
+        return is2D ? this.get2dExpressions() : this.get3dExpressions();
+    }
+
+    /**
+     * 2D計算機に数式をセットする
+     * @param {Array} expressions - セットする数式配列
+     * @returns {boolean} セット成功時はtrue
+     */
+    set2dExpressions(expressions) {
+        try {
+            if (!Array.isArray(expressions)) {
+                console.error('GraTeX API: Invalid expressions array provided');
+                return false;
+            }
+
+            if (!this.calculator2D) {
+                console.error('GraTeX API: 2D calculator not initialized');
+                return false;
+            }
+
+            expressions.forEach(expr => {
+                this.calculator2D.setExpression(expr);
+            });
+            
+            console.log('GraTeX API: 2D expressions set successfully');
+            return true;
+        } catch (error) {
+            console.error('GraTeX API: Error setting 2D expressions:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 3D計算機に数式をセットする
+     * @param {Array} expressions - セットする数式配列
+     * @returns {boolean} セット成功時はtrue
+     */
+    set3dExpressions(expressions) {
+        try {
+            if (!Array.isArray(expressions)) {
+                console.error('GraTeX API: Invalid expressions array provided');
+                return false;
+            }
+
+            if (!this.calculator3D) {
+                console.error('GraTeX API: 3D calculator not initialized');
+                return false;
+            }
+
+            expressions.forEach(expr => {
+                this.calculator3D.setExpression(expr);
+            });
+            
+            console.log('GraTeX API: 3D expressions set successfully');
+            return true;
+        } catch (error) {
+            console.error('GraTeX API: Error setting 3D expressions:', error);
+            return false;
+        }
+    }
+
+    /**
+     * 指定された計算機に数式をセットする
+     * @param {Array} expressions - セットする数式配列
+     * @param {Object} calculator - 対象の計算機インスタンス（省略時はアクティブな計算機）
+     * @returns {boolean} セット成功時はtrue
+     */
+    setExpressions(expressions, calculator = null) {
+        try {
+            if (!Array.isArray(expressions)) {
+                console.error('GraTeX API: Invalid expressions array provided');
+                return false;
+            }
+
+            const targetCalculator = calculator || this.getActiveCalculator();
+            
+            if (!targetCalculator) {
+                console.error('GraTeX API: No valid calculator available');
+                return false;
+            }
+
+            // 既存の数式をクリア（ラベル計算機の場合）
+            if (calculator === this.calculatorLabel) {
+                // ラベル計算機の場合は既存の数式をクリア
+                const existingExpressions = targetCalculator.getExpressions();
+                existingExpressions.forEach(expr => {
+                    if (expr.id) {
+                        targetCalculator.removeExpression({ id: expr.id });
+                    }
+                });
+            }
+
+            expressions.forEach(expr => {
+                // idが重複しないように新しいidを生成（ラベル計算機の場合）
+                if (calculator === this.calculatorLabel && expr.id) {
+                    const newExpr = { ...expr };
+                    delete newExpr.id; // idを削除して自動生成させる
+                    targetCalculator.setExpression(newExpr);
+                } else {
+                    targetCalculator.setExpression(expr);
+                }
+            });
+            
+            console.log('GraTeX API: Expressions set successfully');
+            return true;
+        } catch (error) {
+            console.error('GraTeX API: Error setting expressions:', error);
+            return false;
         }
     }
 
