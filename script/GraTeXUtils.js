@@ -15,6 +15,7 @@ export class GraTeXUtils {
      */
     calculateAutoLabelSize() {
         try {
+            console.log('Calculating auto label size...');
             // 現在のlabelタイプを取得
             const currentLabelValue = this.app.getCurrentLabelValue();
             
@@ -59,6 +60,8 @@ export class GraTeXUtils {
 
                 console.log(`Desmos top expression size (${is2D ? '2D' : '3D'}): ${totalWidth}px × ${totalHeight}px`);
             } else if (currentLabelValue === 'custom') {
+                this.app.calculatorLabel.focusFirstExpression(); //一番上の指揮に移動
+                
                 // custom labelの場合：calculator-labelコンテナ内のDOM要素から横幅・縦幅を取得
                 const parentElement = document.querySelector('#calculator-label .dcg-template-expressioneach');
                 if (!parentElement) {
@@ -112,12 +115,13 @@ export class GraTeXUtils {
             
             // 横幅と縦幅の両方を考慮してサイズを調整
             const targetWidth = this.width * 0.8;
-            const targetHeight = (this.height - this.graphSize) * 0.8;
+            const targetHeight = (this.height - this.graphSize) * 0.8 - this.graphMargin;
             const autoSizeByWidth = 4 * (targetWidth / ExpectedWidth);
             const autoSizeByHeight = 4 * (targetHeight / ExpectedHeight);
             
             // 横幅と縦幅の制約のうち、より厳しい方（小さい方）を採用
             const autoSize = Math.min(autoSizeByWidth, autoSizeByHeight);
+            console.log(totalHeight, totalWidth, ExpectedHeight, ExpectedWidth);
             
             console.log(`Auto size calculation: width=${autoSizeByWidth.toFixed(2)}, height=${autoSizeByHeight.toFixed(2)}, final=${autoSize.toFixed(2)}`);
             
@@ -238,6 +242,7 @@ export class GraTeXUtils {
 
             const label = this.app.getLabel(calculator);
             const ratio = (Math.min(this.width, this.height) >= 360) + 1;
+            console.log(label);
             
             // CalculatorLabelScreenshotを設定・実行する共通処理
             const setupCalculatorLabel = (labelSize) => {
@@ -271,10 +276,10 @@ export class GraTeXUtils {
 
             // AutoサイズかどうかをチェックしてlabelSizeを決定
             let effectiveLabelSize = this.app.labelSize.value;
-            if (effectiveLabelSize === 'auto') {
+
+            if (this.app.labelSize.disabled) { // labelSize = auto
                 // PNG生成時にDesmosのDOM要素からautoサイズを計算
-                effectiveLabelSize = this.calculateAutoLabelSize();
-                setupCalculatorLabel(effectiveLabelSize);
+                setupCalculatorLabel(this.calculateAutoLabelSize());
             } else {
                 effectiveLabelSize = parseFloat(effectiveLabelSize);
                 setupCalculatorLabel(effectiveLabelSize);

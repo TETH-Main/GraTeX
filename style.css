@@ -179,7 +179,7 @@ a.disabled {
 }
 
 #calculator-label {
-  width: 400px;
+  /* width: 400px; */
   height: 300px;
   margin-bottom: 1rem;
 }
@@ -239,6 +239,40 @@ a.disabled {
   margin-bottom: 10px;
 }
 
+.label-size-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label-size-slider {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label-size-slider input[type="range"] {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.label-size-value {
+  min-width: 2.5em;
+  text-align: right;
+}
+
+.label-size-auto {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.label-size-auto input[type="checkbox"] {
+  margin-right: 4px;
+}
+
 .form-control {
   display: block;
   width: 100%;
@@ -253,6 +287,40 @@ a.disabled {
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* フォントプレビュー用スタイル */
+select[name="labelFont"] option {
+  padding: 8px 12px;
+  min-height: 1.5em;
+  font-size: 1.1rem;
+}
+
+select[name="labelFont"] option[value=""] {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+
+select[name="labelFont"] option[value="mathrm"] {
+  font-family: 'Times New Roman', serif;
+}
+
+select[name="labelFont"] option[value="mathit"] {
+  font-family: 'Times New Roman', serif;
+  font-style: italic;
+}
+
+select[name="labelFont"] option[value="mathbf"] {
+  font-family: 'Times New Roman', serif;
+  font-weight: bold;
+}
+
+select[name="labelFont"] option[value="mathsf"] {
+  font-family: Arial, sans-serif;
+}
+
+select[name="labelFont"] option[value="mathtt"] {
+  font-family: 'Courier New', monospace;
 }
 
 .mathquill-input {
@@ -455,7 +523,7 @@ textarea {
 }
 
 .advanced-options-button[aria-expanded="true"] .dropdown-arrow {
-  transform: rotate(180deg);
+  transform: rotate(-90deg);
 }
 
 .advanced-menu {
@@ -538,6 +606,10 @@ textarea {
 
 #movie-panel .form-row[style*="justify-content: flex-end;"] {
   justify-content: flex-end;
+}
+
+#movie-panel .form-row {
+  gap: 5px;
 }
 
 .btn-generate {

@@ -81,6 +81,23 @@
     </div>
     <div id="calculator"></div>
     <div id="calculator-3d"></div>
+    <div class="card">
+      <div class="card-body">
+      <div class="form-row">
+        <div class="col stretch">
+          <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1"
+            placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…" autocomplete="off" autocorrect="off"
+            autocapitalize="off" spellcheck="false"></textarea>
+        </div>
+        <div class="col">
+          <button class="btn btn-import" id="import-button" type="button">
+            <span>Import</span>
+          </button>
+        </div>
+      </div>
+      </div>
+    </div>
+
     <div class="card" id="form-container">
       <div class="card-body">
         <!-- タブ切り替えUI -->
@@ -90,18 +107,6 @@
         </div>
         <!-- Layoutタブ内容 -->
         <div id="layout-panel">
-          <div class="form-row">
-            <div class="col stretch">
-              <textarea class="form-control" id="desmos-hash" name="test" cols="10" rows="1"
-                placeholder="Fill in a Desmos Graphing Caluculator URL or hash here…" autocomplete="off" autocorrect="off"
-                autocapitalize="off" spellcheck="false"></textarea>
-            </div>
-            <div class="col">
-              <button class="btn btn-import" id="import-button" type="button">
-                <span>Import</span>
-              </button>
-            </div>
-          </div>
           <div class="form-row" id="label-radio">
             <div class="col stretch">
               <div class="form-group">
@@ -119,41 +124,27 @@
                 </div>
               </div>
             </div>
-            <div class="col">
-              <div id="calculator-label"></div>
-            </div>
           </div>
+          <div class="col">
+            <div id="calculator-label"></div>
+          </div>
+
           <div class="form-row">
             <div class="col stretch">
               <div class="form-group">
-                <label>Label Font</label>
-                <form name="labelFont">
-                  <select name="labelFont" class="form-control">
-                    <option value="" selected>Default</option>
-                    <option value="mathrm">Roman</option>
-                    <option value="mathit">Italic</option>
-                    <option value="mathbf">Bold</option>
-                    <option value="mathsf">Sans-serif</option>
-                    <option value="mathtt">Monospace</option>
-                  </select>
-                </form>
-              </div>
-            </div>
-            <div class="col stretch">
-              <div class="form-group">
                 <label>Label Size</label>
-                <form name="labelSize">
-                  <select name="labelSize" class="form-control">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="2.5">2.5</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                    <option value="6">6</option>
-                    <option value="8">8</option>
-                    <option value="auto">Auto</option>
-                  </select>
-                </form>
+                <div class="label-size-container">
+                  <form name="labelSize" class="label-size-slider">
+                    <input type="range" name="labelSize" class="form-control" min="0.1" max="10" step="0.1" value="4">
+                    <output class="label-size-value">4</output>
+                  </form>
+                  <div class="label-size-auto">
+                    <label>
+                      <input type="checkbox" name="labelSizeAuto" id="labelSizeAuto">
+                      Auto
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -162,7 +153,7 @@
             <button id="advanced-options" class="advanced-options-button" aria-expanded="false">
               Advanced Options
               <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
-                <path d="M2 8l4 -4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M8 10l-4 -4 4 -4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
               </svg>
             </button>
             <div id="advanced-menu" class="advanced-menu" style="display: none;">
@@ -203,6 +194,23 @@
                   </span>
                 </label>
               </div>
+
+              <div class="col stretch">
+                <div class="form-group">
+                  <label>Label Font</label>
+                  <form name="labelFont">
+                    <select name="labelFont" class="form-control">
+                      <option value="" selected>x² + y² = r² (Default)</option>
+                      <option value="mathrm">x² + y² = r² (Roman)</option>
+                      <option value="mathit">x² + y² = r² (Italic)</option>
+                      <option value="mathbf">x² + y² = r² (Bold)</option>
+                      <option value="mathsf">x² + y² = r² (Sans-serif)</option>
+                      <option value="mathtt">x² + y² = r² (Monospace)</option>
+                    </select>
+                  </form>
+                </div>
+              </div>
+
               <div class="form-row">
                 <div class="col">
                   <label><input type="color" value="#FFFFFF" id="color" /> Background Color</label>
@@ -231,9 +239,11 @@
               <!-- カスタムサイズ入力フィールド -->
               <div class="form-group" id="custom-dimension-inputs" style="display: none;">
                 <div class="custom-dimension-row">
-                  <input type="number" id="custom-width" class="form-control custom-dimension-input" placeholder="Width" min="100" max="10000" step="1">
+                  <input type="number" id="custom-width" class="form-control custom-dimension-input" placeholder="Width"
+                    min="100" max="10000" step="1">
                   <span class="custom-dimension-separator">×</span>
-                  <input type="number" id="custom-height" class="form-control custom-dimension-input" placeholder="Height" min="100" max="10000" step="1">
+                  <input type="number" id="custom-height" class="form-control custom-dimension-input"
+                    placeholder="Height" min="100" max="10000" step="1">
                 </div>
               </div>
             </div>
@@ -253,13 +263,14 @@
                 Add Variable Label
               </label>
             </div>
-          </div>          <div class="form-row" style="align-items: center;">
+          </div>
+          <div class="form-row" style="align-items: center;">
             <div class="col stretch">
               <div class="form-group">
                 <div id="movie-start" class="form-control mathquill-input"></div>
               </div>
             </div>
-            <div style="align-self: center; padding: 0 8px;">
+            <div style="align-self: center;">
               <span class="movie-leq">&leq;</span>
             </div>
             <div class="col stretch">
@@ -269,7 +280,7 @@
                 </select>
               </div>
             </div>
-            <div style="align-self: center; padding: 0 8px;">
+            <div style="align-self: center;">
               <span class="movie-leq">&leq;</span>
             </div>
             <div class="col stretch">
@@ -288,14 +299,17 @@
             <div class="col stretch">
               <div class="form-group">
                 <label for="movie-framerate">Frame Rate (fps)</label>
-                <input type="number" id="movie-framerate" class="form-control" placeholder="e.g. 30" min="1" max="60" value="30" />
+                <input type="number" id="movie-framerate" class="form-control" placeholder="e.g. 30" min="1" max="60"
+                  value="30" />
               </div>
             </div>
             <div class="col" style="max-width: 220px;">
-              <button class="btn btn-primary btn-generate" id="generate-movie-button" type="button" style="width: 100%;">
+              <button class="btn btn-primary btn-generate" id="generate-movie-button" type="button"
+                style="width: 100%;">
                 <span>Generate Movie</span>
               </button>
-              <button class="btn btn-cancel btn-generate" id="cancel-movie-button" type="button" style="width: 100%; display: none;">
+              <button class="btn btn-cancel btn-generate" id="cancel-movie-button" type="button"
+                style="width: 100%; display: none;">
                 <span>Cancel Generation</span>
               </button>
             </div>
