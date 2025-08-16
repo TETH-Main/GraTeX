@@ -79,6 +79,8 @@ class GraTeXApp {
         this.mathjaxPreview = document.getElementById('mathjax-preview');
         this.labelFont = document.forms.labelFont.elements[0];
         this.labelSize = document.forms.labelSize.elements[0];
+        this.labelSizeAuto = document.getElementById('labelSizeAuto');
+        this.labelSizeValue = document.querySelector('.label-size-value');
         this.imageDimension = document.forms.imageDimension.elements[0];
         this.color = document.getElementById('color');
         this.frame = document.getElementById('frame');
@@ -138,6 +140,26 @@ class GraTeXApp {
                     this.loadCurrentStateToLabel();
                 }
             });
+        });
+
+        // ラベルサイズのスライダーとAutoチェックボックスのイベントリスナー
+        this.labelSize.addEventListener('input', (event) => {
+            this.labelSizeValue.textContent = event.target.value;
+            if (this.labelSizeAuto.checked) {
+                this.labelSizeAuto.checked = false;
+            }
+        });
+
+        this.labelSizeAuto.addEventListener('change', (event) => {
+            this.labelSize.disabled = event.target.checked;
+            if (event.target.checked) {
+                // this.labelSize.value = 'auto';
+                // const autoSize = this.utils.calculateAutoLabelSize();
+                // this.labelSizeValue.textContent = autoSize;
+            } else {
+                this.labelSize.value = this.labelSizeValue.textContent;
+                // this.labelSizeValue.textContent = 4;
+            }
         });
 
         // カスタム画像サイズのイベントリスナー
@@ -206,13 +228,18 @@ class GraTeXApp {
     importGraph(hash) {
         if (!hash) return;
 
-        let url = hash;
-
         const is2D = this.is2DCalculatorActive();
+
+        // コピー & ペースト仕様コード
+        let url = hash;
         if (!hash.startsWith('https://')) {
             if (is2D) url = `https://www.desmos.com/calculator/${hash}`;
             else url = `https://www.desmos.com/3d/${hash}`;
         }
+
+        this.loadGraph(url, is2D);
+
+        return;
 
         const clipboardData = new DataTransfer();
         clipboardData.setData('text/plain', url);
@@ -235,30 +262,32 @@ class GraTeXApp {
         }
     }
 
-    loadGraph(hash, is2D) {
-        let url = is2D
-            ? 'https://saved-work.desmos.com/calc-states/production/'
-            : 'https://saved-work.desmos.com/calc-3d-states/production/';
-        url += hash;
+    async loadGraph(url, is2D) {
+        try {
+            // APIからグラフデータを直接取得
+            const res = await fetch(url, { headers: { Accept: "application/json" }});
+            const graph = await res.json();
 
-        fetch(url)
-            .then(response => response.text())
-            .then(html => {
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                const data = doc.body.getAttribute('data-load-data');
-                // dataはJSON文字列なので、必要ならJSON.parse
-                const json = JSON.parse(data.replace(/'/g, '"'));
-                const graphStateUrl = json.graph.stateUrl;
-                return fetch(graphStateUrl);
-            })
-            .then(response => response.json())
-            .then(state => {
-                document.getElementById(is2D ? 'version-2d' : 'version-3d').checked = true;
-                (is2D ? this.calculator2D : this.calculator3D).setState(state);
-                this.desmosHash.value = '';
-                this.calcElt.style.display = is2D ? '' : 'none';
-                this.calc3DElt.style.display = is2D ? 'none' : '';
-            });
+            // グラフを設定
+            const expressions = graph.state.expressions.list;
+            this.setExpressions(expressions);
+            
+            // 入力欄をクリア
+            this.desmosHash.value = '';
+
+            console.log('GraTeX: Graph loaded successfully');
+
+            /* 開発メモ:
+             * 以下のコードでグラフデータが取得可能:
+             * const res = await fetch('https://www.desmos.com/calculator/lmre1jcuzi', { headers: { Accept: "application/json" }});
+             * const graph = await res.json();
+             * 
+             * graph.state にはcurrentVersionが含まれており、
+             * これを使用したimport機能が実装できる
+             */
+        } catch (error) {
+            console.error('GraTeX: Error loading graph:', error);
+        }
     }
 
     async initMovieGenerator() {
@@ -821,7 +850,7 @@ class GraTeXApp {
         const settings = {
             label: this.getCurrentLabelValue(),
             labelFont: this.labelFont.value,
-            labelSize: this.labelSize.value,
+            labelSize: this.labelSizeAuto.checked ? 'auto' : this.labelSize.value,
             addFrame: this.frame.checked,
             wideGraph: this.widegraph.checked,
             addCredit: this.credit.checked,
@@ -864,7 +893,17 @@ class GraTeXApp {
 
             // Label Size設定
             if (settings.labelSize !== undefined) {
-                this.labelSize.value = settings.labelSize;
+                if (settings.labelSize === 'auto') {
+                    this.labelSizeAuto.checked = true;
+                    this.labelSize.value = 'auto';
+                    this.labelSizeValue.textContent = 4;
+                    this.labelSize.disabled = true;
+                } else {
+                    this.labelSizeAuto.checked = false;
+                    this.labelSize.value = settings.labelSize;
+                    this.labelSizeValue.textContent = settings.labelSize;
+                    this.labelSize.disabled = false;
+                }
             }
 
             // Boolean設定（チェックボックス）
